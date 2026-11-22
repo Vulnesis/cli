@@ -68,7 +68,8 @@ Credential flags (org-scoped methods require --org-id):
   --api-key KEY        ApiKey credential from your VDB account (requires --org-id)
   --secret KEY         SigV4 secret from your VDB account (requires --org-id)
   --token KEY          Bearer token (org resolved server-side; no --org-id)
-  --noninteractive     Require ApiKey (--api-key + --org-id) from flags or environment
+  --noninteractive     No browser or prompt: ApiKey (--api-key or VULNETIX_API_KEY,
+                       with --org-id or VULNETIX_ORG_ID), or SigV4 from VVD_ORG and VVD_SECRET
   --store home|project|keyring
   --store-dir DIR      Override the default home credential directory`,
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -234,19 +235,15 @@ func runAuthLogin(cmd *cobra.Command) error {
 
 	switch {
 	case authNoninteractive:
-		// Force org-scoped ApiKey from flags/env; never browser, never prompt.
+		// Never browser, never prompt. A secret never comes from argv here.
 		if authSecret != "" || authToken != "" {
-			return fmt.Errorf("--noninteractive uses ApiKey credentials only; use --api-key with --org-id")
+			return fmt.Errorf("--noninteractive takes an ApiKey (--api-key or VULNETIX_API_KEY) or a SigV4 secret from VVD_ORG and VVD_SECRET; --secret and --token are not accepted")
 		}
-		key := firstNonEmpty(authAPIKey, os.Getenv("VULNETIX_API_KEY"))
-		org := firstNonEmpty(authOrgID, os.Getenv("VULNETIX_ORG_ID"))
-		if key == "" || org == "" {
-			return fmt.Errorf("missing ApiKey or org for noninteractive login. Get your ApiKey and Org ID from your Vulnetix VDB account, then pass --api-key and --org-id (or set VULNETIX_API_KEY and VULNETIX_ORG_ID)")
+		c, err := noninteractiveCredentials(authAPIKey, authOrgID, os.Getenv)
+		if err != nil {
+			return err
 		}
-		if _, err := uuid.Parse(org); err != nil {
-			return fmt.Errorf("--org-id must be a valid UUID, got: %s", org)
-		}
-		creds = &auth.Credentials{OrgID: org, APIKey: stripOrgPrefix(org, key), Method: auth.DirectAPIKey}
+		creds = c
 
 	case authAPIKey != "":
 		// Org-scoped ApiKey (sent as `Authorization: ApiKey <orgID>:<key>`).
@@ -740,7 +737,7 @@ func init() {
 	authLoginCmd.Flags().StringVar(&authSecret, "secret", "", "SigV4 secret from your VDB account (requires --org-id)")
 	authLoginCmd.Flags().StringVar(&authStore, "store", "home", "Credential storage: home, project, keyring")
 	authLoginCmd.Flags().StringVar(&authStoreDir, "store-dir", "", "Directory for home/keyring credential metadata instead of $HOME/.vulnetix")
-	authLoginCmd.Flags().BoolVar(&authNoninteractive, "noninteractive", false, "Require ApiKey from --api-key or environment; never launch a browser")
+	authLoginCmd.Flags().BoolVar(&authNoninteractive, "noninteractive", false, "Sign in without a browser or prompt: ApiKey from --api-key or VULNETIX_API_KEY, or SigV4 from VVD_ORG and VVD_SECRET")
 	_ = authLoginCmd.Flags().MarkHidden("token")
 	_ = authLoginCmd.RegisterFlagCompletionFunc("method", cobra.FixedCompletions([]string{"apikey", "sigv4"}, cobra.ShellCompDirectiveNoFileComp))
 	_ = authLoginCmd.RegisterFlagCompletionFunc("store", cobra.FixedCompletions([]string{"home", "project", "keyring"}, cobra.ShellCompDirectiveNoFileComp))
@@ -753,7 +750,7 @@ func init() {
 	authCmd.Flags().StringVar(&authSecret, "secret", "", "SigV4 secret from your VDB account (requires --org-id)")
 	authCmd.Flags().StringVar(&authStore, "store", "home", "Credential storage: home, project, keyring")
 	authCmd.Flags().StringVar(&authStoreDir, "store-dir", "", "Directory for home/keyring credential metadata instead of $HOME/.vulnetix")
-	authCmd.Flags().BoolVar(&authNoninteractive, "noninteractive", false, "Require ApiKey from --api-key or environment; never launch a browser")
+	authCmd.Flags().BoolVar(&authNoninteractive, "noninteractive", false, "Sign in without a browser or prompt: ApiKey from --api-key or VULNETIX_API_KEY, or SigV4 from VVD_ORG and VVD_SECRET")
 	_ = authCmd.Flags().MarkHidden("token")
 	_ = authCmd.RegisterFlagCompletionFunc("method", cobra.FixedCompletions([]string{"apikey", "sigv4"}, cobra.ShellCompDirectiveNoFileComp))
 	_ = authCmd.RegisterFlagCompletionFunc("store", cobra.FixedCompletions([]string{"home", "project", "keyring"}, cobra.ShellCompDirectiveNoFileComp))
