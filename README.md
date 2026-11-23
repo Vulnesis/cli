@@ -158,12 +158,12 @@ It detects the agents, writes each one's hook config and skills, and configures 
 server where the agent speaks MCP. In Claude Code you can install the plugin instead:
 
 ```
-/plugin marketplace add Vulnesis/pix-ai-coding-assistant
+/plugin marketplace add Vulnesis/strix-ai-coding-assistant
 /plugin install vulnetix@vulnetix-plugins
 ```
 
 See the [Strix documentation](https://docs.vulnes.is/strix/) and the
-[Strix repository](https://github.com/Vulnesis/pix-ai-coding-assistant).
+[Strix repository](https://github.com/Vulnesis/strix-ai-coding-assistant).
 
 ## Configuration
 
