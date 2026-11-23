@@ -18,7 +18,7 @@ the Resolve Platform.
 - [First scan](#first-scan)
 - [GitHub Action](#github-action)
 - [Other CI/CD platforms](#other-cicd-platforms)
-- [Pix for coding agents](#pix-for-coding-agents)
+- [Strix for coding agents](#strix-for-coding-agents)
 - [Configuration](#configuration)
 - [Development](#development)
 - [Contributing](#contributing)
@@ -144,9 +144,9 @@ release steps. See [docs/github-actions.md](./docs/github-actions.md) for every 
 | Azure DevOps | [docs/azure-devops.md](./docs/azure-devops.md) |
 | Bitbucket | [docs/bitbucket.md](./docs/bitbucket.md) |
 
-## Pix for coding agents
+## Strix for coding agents
 
-Pix wires Vulnesis into the coding agents on your machine (Claude Code, Codex and others): hooks
+Strix wires Vulnesis into the coding agents on your machine (Claude Code, Codex and others): hooks
 that check a dependency before it lands and a commit before it records a credential, and skills
 for work that needs your working tree, such as fixing a finding and checking the fix landed.
 
@@ -162,8 +162,8 @@ server where the agent speaks MCP. In Claude Code you can install the plugin ins
 /plugin install vulnetix@vulnetix-plugins
 ```
 
-See the [Pix documentation](https://docs.vulnes.is/pix/) and the
-[Pix repository](https://github.com/Vulnesis/pix-ai-coding-assistant).
+See the [Strix documentation](https://docs.vulnes.is/strix/) and the
+[Strix repository](https://github.com/Vulnesis/pix-ai-coding-assistant).
 
 ## Configuration
 
@@ -223,7 +223,7 @@ Run `just test` before you send a change, and regenerate any generated file you 
 ## Documentation
 
 - [CLI documentation](https://docs.vulnes.is/cli/)
-- [Pix documentation](https://docs.vulnes.is/pix/)
+- [Strix documentation](https://docs.vulnes.is/strix/)
 - [VDB API](https://docs.vulnes.is/vdb-api/)
 - [Installation guides](./docs/README.md)
 - [Distribution](./docs/PUBLISHING.md)
