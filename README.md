@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="pix.svg" alt="Pix, the Vulnesis AI coding assistant" width="140">
+  <img src="strix.svg" alt="Strix, the Vulnesis AI coding assistant" width="140">
 </p>
 
 # Vulnesis CLI and GitHub Action
