@@ -100,7 +100,7 @@ jobs:
           fi
           echo "workflow_sha=$workflow_sha" >> "$GITHUB_OUTPUT"
           case "$signer" in
-            Vulnetix/cli/.github/workflows/slsa-provenance.yml@*) ;;
+            Vulnetix/cli/.github/workflows/slsa-provenance.yml@*|Vulnesis/cli/.github/workflows/slsa-provenance.yml@*) ;;
             *) echo "::error::unexpected signing workflow: $signer"; exit 1 ;;
           esac
 
@@ -142,7 +142,7 @@ jobs:
       - name: Verify
         run: |
           set -euo pipefail
-          identity='^https://github.com/Vulnetix/cli/\.github/workflows/slsa-provenance\.yml@'
+          identity='^https://github.com/(Vulnetix|Vulnesis)/cli/\.github/workflows/slsa-provenance\.yml@'
           cosign verify-blob-attestation \
             --bundle candidate.sigstore.json --new-bundle-format \
             --type slsaprovenance1 \
@@ -184,7 +184,7 @@ jobs:
       # this workflow is signed with.
       - uses: actions/checkout@v7
         with:
-          repository: Vulnetix/cli
+          repository: Vulnesis/cli
           ref: ${{ steps.statement.outputs.workflow_sha }}
           path: .slsa-provenance
           sparse-checkout: scripts/release-asset-upload.sh
