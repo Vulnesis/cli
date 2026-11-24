@@ -523,9 +523,17 @@ jobs:
           git commit -m "chore: update flake.nix to v${VER_NUM} [skip ci]"
           git push --force origin "$branch"
           url=$(gh pr list --head "$branch" --json url --jq '.[0].url // empty')
-          [ -n "$url" ] || url=$(gh pr create --base main --head "$branch" \
-            --title "chore: update flake.nix to v${VER_NUM} [skip ci]" \
-            --body "The release workflow's flake bump for ${VERSION}.")
+          # The Vulnesis org does not let GitHub Actions create pull requests
+          # (2026-11-24), and protect-main refuses this unsigned bot commit
+          # anyway. Then the bump is left on its branch for a signed PR by hand
+          # (as #361 did for v4.26.3); the release itself is not failed, so
+          # publish-tea, which waits on this job, still runs.
+          if [ -z "$url" ] && ! url=$(gh pr create --base main --head "$branch" \
+              --title "chore: update flake.nix to v${VER_NUM} [skip ci]" \
+              --body "The release workflow's flake bump for ${VERSION}." 2>&1); then
+            echo "::warning::could not open the flake PR ($url). Open a signed one by hand: set version = \"${VER_NUM}\" in flake.nix on a branch from main."
+            exit 0
+          fi
           gh pr merge "$url" --squash --auto ||
             echo "::warning::auto-merge is not available for $url; it waits for a merge by hand"
 
