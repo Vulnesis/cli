@@ -198,7 +198,9 @@ jobs:
   # collision itself; without that fixture a clean worktree would pass even on the broken code.
   worktree:
     name: Test in a git worktree
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    # standard-4: on standard-2 the SAST efficacy suite hit the 30-minute go test
+    # timeout (PR #363, job 138387453785).
+    runs-on: [self-hosted, vulnesis-cf-large]
     needs: [lint]
 
     steps:
