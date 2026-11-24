@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/vulnetix/cli/v4/pkg/brand"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -18,6 +19,10 @@ import (
 )
 
 func TestMain(m *testing.M) {
+	// These tests assert Vulnetix URLs. Vulnesis is the default brand (pkg/brand
+	// covers it); pin Vulnetix before anything reads the brand.
+	os.Setenv("VULNETIX_BRAND", "vulnetix")
+	brand.Set(brand.Vulnetix)
 	// Never let a test write tokens into the developer's real ~/.vulnetix.
 	dir, err := os.MkdirTemp("", "vdb-tokens-")
 	if err != nil {

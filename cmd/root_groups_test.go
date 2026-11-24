@@ -49,9 +49,14 @@ func TestRootHelpShowsGroupsAndFirstSteps(t *testing.T) {
 			t.Errorf("root help has no %q section", want)
 		}
 	}
-	for _, want := range []string{"vulnetix auth login", "vulnetix scan", "https://docs.vulnetix.com/cli/"} {
+	for _, want := range []string{"vulnetix auth login", "vulnetix scan"} {
 		if !strings.Contains(rootCmd.Long, want) {
 			t.Errorf("root Long text does not mention %q", want)
 		}
+	}
+	// The docs link is mapped for the brand when the package loads, before any
+	// test can pin it, so either brand's form is right.
+	if !strings.Contains(rootCmd.Long, "https://docs.vulnetix.com/cli/") && !strings.Contains(rootCmd.Long, "https://docs.vulnes.is/cli/") {
+		t.Errorf("root Long text does not link the CLI docs")
 	}
 }

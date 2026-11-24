@@ -1,10 +1,10 @@
-// Package brand selects which brand the CLI speaks for: Vulnetix
-// (vulnetix.com, the default) or Vulnesis (vulnes.is).
+// Package brand selects which brand the CLI speaks for: Vulnesis
+// (vulnes.is, the default) or Vulnetix (vulnetix.com, retired).
 //
 // The brand is chosen at run time by the VULNETIX_BRAND environment variable
 // (VULNESIS_BRAND is an alias): "vulnetix" or "vulnesis", in any case. Anything
-// else, or nothing, is Vulnetix, so a released binary behaves exactly as it
-// always has unless the user opts in.
+// else, or nothing, is Vulnesis: the vulnetix.com hosts are retired (they
+// redirect, and a redirect drops credentials), so Vulnetix is opt-in.
 //
 // Code that builds or shows a vulnetix.com endpoint or link passes it through
 // URL (or Host for a bare hostname). Under Vulnetix both are the identity.
@@ -28,7 +28,7 @@ import (
 type Brand int
 
 const (
-	// Vulnetix is vulnetix.com, the default.
+	// Vulnetix is vulnetix.com (retired; opt in with VULNETIX_BRAND=vulnetix).
 	Vulnetix Brand = iota
 	// Vulnesis is vulnes.is.
 	Vulnesis
@@ -52,7 +52,7 @@ var (
 )
 
 // Parse reads a brand name, case-insensitively and ignoring surrounding space.
-// ok is false for anything that is not a brand, and b is then Vulnetix.
+// ok is false for anything that is not a brand, and b is then Vulnesis.
 func Parse(s string) (b Brand, ok bool) {
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case "vulnetix":
@@ -60,7 +60,7 @@ func Parse(s string) (b Brand, ok bool) {
 	case "vulnesis":
 		return Vulnesis, true
 	}
-	return Vulnetix, false
+	return Vulnesis, false
 }
 
 // FromEnv is the brand the environment selects, read now.
@@ -96,7 +96,7 @@ func Reset() {
 	mu.Lock()
 	defer mu.Unlock()
 	once = sync.Once{}
-	current = Vulnetix
+	current = Vulnesis
 }
 
 // Name is the display name: "Vulnetix" or "Vulnesis".

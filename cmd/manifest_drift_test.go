@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"github.com/vulnetix/cli/v4/pkg/brand"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -15,6 +16,10 @@ import (
 var manifestBeforeTests []byte
 
 func TestMain(m *testing.M) {
+	// These tests assert Vulnetix URLs and copy. Vulnesis is the default brand
+	// (pkg/brand covers it); pin Vulnetix before anything reads the brand.
+	os.Setenv("VULNETIX_BRAND", "vulnetix")
+	brand.Set(brand.Vulnetix)
 	b, err := json.Marshal(BuildCommandManifest())
 	if err != nil {
 		panic(err)
