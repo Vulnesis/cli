@@ -5,7 +5,7 @@ set -e
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 VERSION="${VERSION:-latest}"
 BINARY_NAME="vulnetix"
-GITHUB_REPO="Vulnetix/cli"
+GITHUB_REPO="Vulnesis/cli"
 GITHUB_BASE="https://github.com/${GITHUB_REPO}/releases"
 DOCS_URL="https://docs.vulnetix.com/cli/"
 INSECURE_SKIP_VERIFY="${VULNETIX_INSECURE_SKIP_VERIFY:-0}"
@@ -21,8 +21,10 @@ REQUIRE_PROVENANCE="${VULNETIX_REQUIRE_PROVENANCE:-0}"
 PROVENANCE_ASSET="provenance.sigstore.json"
 PROVENANCE_TYPE="slsaprovenance1"
 PROVENANCE_ISSUER="https://token.actions.githubusercontent.com"
-PROVENANCE_IDENTITY_REGEXP='^https://github\.com/Vulnetix/cli/\.github/workflows/slsa-provenance\.yml@refs/(heads/main|tags/v[0-9]+\.[0-9]+\.[0-9]+.*)$'
-PROVENANCE_REPOSITORY="Vulnetix/cli"
+# The repository moved from Vulnetix/cli to Vulnesis/cli on 2026-11-24. Releases
+# from v4.26.2 are signed by Vulnesis/cli's workflow; earlier ones by Vulnetix/cli's.
+# Each is tried in turn, and the repository claim must match the same owner.
+PROVENANCE_REPOSITORIES="Vulnesis/cli Vulnetix/cli"
 # The provenance job signs a few minutes after the release is published (one to
 # nine minutes across the v4 releases so far), so a release resolved from latest
 # or a channel in that window has no bundle yet. With provenance required, the
@@ -244,10 +246,10 @@ resolve_latest_tag() {
   local url=""
   if command -v curl >/dev/null 2>&1; then
     url=$(curl -fsSLI -o /dev/null -w '%{url_effective}' --retry 2 \
-      "https://github.com/Vulnetix/cli/releases/latest" 2>/dev/null)
+      "https://github.com/Vulnesis/cli/releases/latest" 2>/dev/null)
   elif command -v wget >/dev/null 2>&1; then
     url=$(wget -q --spider --server-response --max-redirect=10 \
-      "https://github.com/Vulnetix/cli/releases/latest" 2>&1 \
+      "https://github.com/Vulnesis/cli/releases/latest" 2>&1 \
       | awk '/^  Location: /{print $2}' | tail -n1)
   fi
 
@@ -392,7 +394,7 @@ verify_checksum() {
     echo "error:   size:     $(wc -c < "$tmp_binary" 2>/dev/null || echo unknown) bytes" >&2
     echo "error: if the size above looks short, the download was interrupted: run the installer again." >&2
     echo "error: if it is the full size, do not install this binary. Report it at" >&2
-    echo "error:   https://github.com/Vulnetix/cli/issues" >&2
+    echo "error:   https://github.com/Vulnesis/cli/issues" >&2
     rm -f "$tmp_binary"
     exit 1
   fi
@@ -461,25 +463,28 @@ verify_provenance() {
     return
   fi
 
-  local out
-  if out=$(cosign verify-blob-attestation \
-      --bundle "$TMP_BUNDLE" --new-bundle-format \
-      --type "$PROVENANCE_TYPE" \
-      --certificate-oidc-issuer "$PROVENANCE_ISSUER" \
-      --certificate-identity-regexp "$PROVENANCE_IDENTITY_REGEXP" \
-      --certificate-github-workflow-repository "$PROVENANCE_REPOSITORY" \
-      "$tmp_binary" 2>&1); then
-    rm -f "$TMP_BUNDLE"
-    echo "info: provenance verified ok (signed by ${PROVENANCE_REPOSITORY} slsa-provenance.yml)"
-    return
-  fi
+  local out repo identity
+  for repo in $PROVENANCE_REPOSITORIES; do
+    identity="^https://github\\.com/${repo%/*}/${repo#*/}/\\.github/workflows/slsa-provenance\\.yml@refs/(heads/main|tags/v[0-9]+\\.[0-9]+\\.[0-9]+.*)\$"
+    if out=$(cosign verify-blob-attestation \
+        --bundle "$TMP_BUNDLE" --new-bundle-format \
+        --type "$PROVENANCE_TYPE" \
+        --certificate-oidc-issuer "$PROVENANCE_ISSUER" \
+        --certificate-identity-regexp "$identity" \
+        --certificate-github-workflow-repository "$repo" \
+        "$tmp_binary" 2>&1); then
+      rm -f "$TMP_BUNDLE"
+      echo "info: provenance verified ok (signed by ${repo} slsa-provenance.yml)"
+      return
+    fi
+  done
 
   rm -f "$TMP_BUNDLE"
   echo "error: provenance verification failed, refusing to install" >&2
   printf '%s\n' "$out" | sed 's/^/error:   cosign: /' >&2
   echo "error: if cosign could not reach Sigstore (a network error above), run the installer again." >&2
   echo "error: otherwise do not install this binary. Report it at" >&2
-  echo "error:   https://github.com/Vulnetix/cli/issues" >&2
+  echo "error:   https://github.com/Vulnesis/cli/issues" >&2
   rm -f "$tmp_binary"
   exit 1
 }

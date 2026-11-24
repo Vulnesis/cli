@@ -202,9 +202,7 @@ func TestUnreadableRPMIsAWarningNotAnEmptySystem(t *testing.T) {
 }
 
 func TestUnreadableDatabasesAreWarnings(t *testing.T) {
-	if os.Geteuid() == 0 {
-		t.Skip("root reads every file")
-	}
+	skipIfModesAreBypassed(t)
 	root := t.TempDir()
 	write(t, root, "var/lib/dpkg/status", "Package: a\nStatus: install ok installed\nVersion: 1\n")
 	write(t, root, "lib/apk/db/installed", "P:b\nV:1\n")
@@ -279,5 +277,20 @@ func TestDerivativesAreMatchedAsTheirBase(t *testing.T) {
 		if !strings.Contains(purl, "/"+c.wantNS+"/openssl@") {
 			t.Errorf("%s: purl %s", c.name, purl)
 		}
+	}
+}
+
+// skipIfModesAreBypassed skips a test that needs a permission denial when this
+// process is not denied: root, or a user holding CAP_DAC_OVERRIDE, as the jobs
+// on the Cloudflare container runners do (their uid is not 0, so a Geteuid
+// check alone let these tests run and fail).
+func skipIfModesAreBypassed(t *testing.T) {
+	t.Helper()
+	probe := filepath.Join(t.TempDir(), "probe")
+	if err := os.WriteFile(probe, []byte("x"), 0o000); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.ReadFile(probe); err == nil {
+		t.Skip("this process reads a mode-000 file (root or CAP_DAC_OVERRIDE), so it cannot be denied")
 	}
 }
