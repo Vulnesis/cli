@@ -5,7 +5,7 @@ import (
 
 	semver "github.com/Masterminds/semver/v3"
 
-	manifest "github.com/Vulnetix/vdb-manifest"
+	manifest "github.com/Vulnesis/vdb-manifest"
 
 	vers "github.com/vulnetix/cli/v4/internal/versions"
 )
@@ -21,7 +21,7 @@ import (
 // where prereleases are included in vulnerability ranges.
 //
 // The implementation is shared with the server through
-// github.com/Vulnetix/vdb-manifest.
+// github.com/Vulnesis/vdb-manifest.
 func Satisfies(version, constraint string) bool {
 	return manifest.Satisfies(version, constraint)
 }

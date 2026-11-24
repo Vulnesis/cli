@@ -7,13 +7,13 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/Vulnetix/vdb-sca-match/sarif"
+	"github.com/Vulnesis/vdb-sca-match/sarif"
 	"github.com/vulnetix/cli/v4/internal/artifacts"
 	"github.com/vulnetix/cli/v4/pkg/brand"
 )
 
 // SARIF 2.1.0 types now live in the shared module
-// github.com/Vulnetix/vdb-sca-match/sarif, so the CLI and vdb-api parse, write
+// github.com/Vulnesis/vdb-sca-match/sarif, so the CLI and vdb-api parse, write
 // and decompose SARIF through one implementation. These aliases keep the ~40
 // existing `sast.SARIF*` call sites compiling unchanged.
 //

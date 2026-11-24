@@ -8,9 +8,9 @@ How releases are built and published. Installing a release is documented at **[d
 |--------|-----------|-------------|
 | GitHub Releases | Automated on tags | Direct binary download |
 | Go Install | Automated | `go install github.com/vulnetix/cli/v4@latest` |
-| Homebrew Tap | Automated on release | `brew install vulnetix/tap/vulnetix` |
-| Scoop Bucket | Automated on release | `scoop install vulnetix` |
-| Nix Flake | Automated on release | `nix profile install github:Vulnesis/cli` |
+| Homebrew Tap | Follows the Latest release (tap's `follow-releases.yml`, twice an hour, after the canary) | `brew install vulnetix/tap/vulnetix` |
+| Scoop Bucket | Follows the Latest release (bucket's `follow-releases.yml`, twice an hour, after the canary) | `scoop install vulnetix` |
+| Nix Flake | Auto-merge PR from the release | `nix profile install github:Vulnesis/cli` |
 | GitHub Actions | In-repo | `uses: Vulnesis/cli@v4` (the major tag moves to each newest release of that major; the action installs the newest release of the same major by default) |
 
 See [Install](https://docs.vulnes.is/cli/get-started/install/) for every channel's install steps.
@@ -19,10 +19,33 @@ See [Install](https://docs.vulnes.is/cli/get-started/install/) for every channel
 
 `release.yml` publishes every tag it is given, but only the newest stable tag
 across every major becomes the GitHub Latest release, moves its major tag
-(`MAJOR=${VERSION%%.*}`, so `v3` or `v4`) and updates Homebrew, Scoop and the
-flake. Once v4 ships, a v3 patch release is still published with its binaries,
-but the `v3` tag, Latest and the package managers stay where they are, so
+(`MAJOR=${VERSION%%.*}`, so `v3` or `v4`) and opens the flake bump. Once v4
+ships, a v3 patch release is still published with its binaries, but the `v3`
+tag, Latest and the package managers stay where they are, so
 `uses: Vulnesis/cli@v3` keeps its last v3 release and nothing rolls back.
+
+## Permissions
+
+Every job uses this repository's `GITHUB_TOKEN` with an explicit `permissions:`
+block, and no job holds a token for another repository:
+
+- **Go modules.** `vdb-sca-match` and `vdb-manifest` are public modules under
+  `github.com/Vulnesis/*`, so the builds fetch them through the module proxy
+  with no `GOPRIVATE` and no token.
+- **Binaries between jobs.** They pass as Actions artifacts (`cross-binaries`,
+  `darwin-binaries`, kept for a day). They used to go through an S3 stage on the
+  Vulnetix AWS account, whose role does not trust Vulnesis repositories (the
+  v4.25.0 release failed there).
+- **The flake.** `main` takes changes only through a pull request (ruleset
+  `protect-main`), so `update-flake` pushes `chore/flake-<version>`, opens a PR
+  with `pull-requests: write` and turns on auto-merge. If auto-merge is not
+  available, the PR waits for a merge by hand.
+- **Homebrew and Scoop.** `Vulnesis/homebrew-tap` and `Vulnesis/scoop-bucket`
+  each run `follow-releases.yml` at :07 and :37 with their own token. It moves
+  `vulnetix` to the Latest release once that release run's `canary` job has
+  passed, and never moves it back. To pick up a release sooner, run
+  `gh workflow run follow-releases.yml -R Vulnesis/homebrew-tap` (and the same
+  for `Vulnesis/scoop-bucket`).
 
 The Go module path in the build ldflags, the `go install` test and the TEA
 channel is read from `go.mod` (`go list -m`), so a major bump needs no edit to
@@ -46,14 +69,14 @@ SLSA Build L3.
 
 A public TEA product cannot be unpublished, so `publish-tea` waits for the
 bundle: it runs only when `provenance` succeeded (and, for the newest release,
-when `update-packages` did, which needs the canary, which needs provenance).
+when `update-flake` did, which needs the canary, which needs provenance).
 A failed `provenance` job is re-run (`gh run rerun <run-id> --failed`), and
 everything after it runs again.
 
 Release assets are uploaded by release id (`scripts/release-asset-upload.sh`),
-never with `gh release upload <tag>`. The uploads use `PACKAGES_TOKEN`, a
-personal token whose 5,000 REST requests an hour are shared with everything
-else that uses it. When they are spent, gh's lookup of a release by tag prints
+never with `gh release upload <tag>`. The uploads use the job's `GITHUB_TOKEN`,
+whose REST quota is the repository installation's, shared with every scan on
+the same push. When it is spent, gh's lookup of a release by tag prints
 `release not found` for a published release (it prefers that answer when its
 REST lookup and its GraphQL draft lookup both fail, cli/cli#13723), which
 failed v4.24.8, v4.24.32 and v4.24.34. The script resolves the id over
@@ -91,8 +114,11 @@ cosign verify-blob-attestation \
 tag pushed with `GITHUB_TOKEN` does not itself trigger another workflow. If the
 `release` job then fails — most often *"The job was not acquired by Runner of
 type hosted"*, a GitHub runner-allocation flake — the tag exists but no Release
-is published, and `test-go-install` and `update-packages` are skipped. Homebrew,
-Scoop and Nix stay on the previous version.
+is published, and `test-go-install` and `update-flake` are skipped. Homebrew,
+Scoop and Nix stay on the previous version. The same happens when the dispatch
+itself fails: v4.25.0 to v4.26.1 were tagged on 2026-11-21 to 2026-11-23 with no
+release, because the runner had no `gh`. Only the newest such tag needs a
+release, since it carries every earlier change.
 
 Re-dispatch for that exact tag. The "Create or update Release" step is
 idempotent: it creates the tag if missing, and uploads with `--clobber` when the

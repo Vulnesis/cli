@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Vulnetix/vdb-sca-match/ghaudit"
+	"github.com/Vulnesis/vdb-sca-match/ghaudit"
 )
 
 func TestAdvisoriesAsksOncePerReferenceAndRecordsFailure(t *testing.T) {

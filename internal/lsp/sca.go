@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Vulnetix/vdb-sca-match/parse"
+	"github.com/Vulnesis/vdb-sca-match/parse"
 
 	"github.com/vulnetix/cli/v4/internal/cdx"
 	"github.com/vulnetix/cli/v4/internal/lsp/anchor"

@@ -110,29 +110,21 @@ jobs:
           # main has become since the tag was cut.
           #
           # The tag is already pushed, so a failed dispatch leaves a version with
-          # no release, and the next run tags past it. The job token shares the
-          # repository's hourly installation quota with every scan on the push
-          # to main, and a run of merges spends it: on 2026-11-13 every dispatch
-          # after the first answered "API rate limit exceeded for installation".
-          # So retry, then dispatch with the release token, which has its own
-          # quota (and is the token release.yml publishes with anyway).
-          dispatch() {
-            GH_TOKEN="$1" gh workflow run release.yml \
-              --ref "$VERSION" \
-              --field version="$VERSION"
-          }
-          for attempt in 1 2 3; do
-            if dispatch "$JOB_TOKEN"; then exit 0; fi
-            echo "::warning::dispatch with the job token failed (attempt $attempt)"
-            sleep $((attempt * 20))
+          # no release, and the next run tags past it. The job token
+          # (actions: write) shares the repository's hourly installation quota
+          # with every scan on the push to main, and a run of merges can spend
+          # it (2026-11-13: "API rate limit exceeded for installation"), so
+          # retry for up to about ten minutes, past a quota reset window.
+          # 2026-11-23: v4.25.0-v4.26.1 were tagged with no release because the
+          # runner had no gh; the image carries it since then.
+          command -v gh >/dev/null || { echo "::error::gh is not on this runner"; exit 1; }
+          for attempt in 1 2 3 4 5 6; do
+            if gh workflow run release.yml --ref "$VERSION" --field version="$VERSION"; then exit 0; fi
+            echo "::warning::dispatch failed (attempt $attempt)"
+            sleep $((attempt * 30))
           done
-          if [ -n "$RELEASE_TOKEN" ] && dispatch "$RELEASE_TOKEN"; then
-            echo "::notice::dispatched $VERSION with the release token"
-            exit 0
-          fi
           echo "::error::could not dispatch release.yml for $VERSION; run: gh workflow run release.yml --ref $VERSION --field version=$VERSION"
           exit 1
         env:
           VERSION: ${{ steps.bump.outputs.new_version }}
-          JOB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          RELEASE_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+          GH_TOKEN: ${{ github.token }}

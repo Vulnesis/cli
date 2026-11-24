@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/Vulnetix/vdb-sca-match/ghaudit"
+	"github.com/Vulnesis/vdb-sca-match/ghaudit"
 )
 
 // AdvisoryLookup answers one action reference: the advisories that affect the

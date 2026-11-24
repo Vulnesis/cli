@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	manifest "github.com/Vulnetix/vdb-manifest"
+	manifest "github.com/Vulnesis/vdb-manifest"
 	"github.com/vulnetix/cli/v4/internal/scan"
 )
 
@@ -119,7 +119,7 @@ func applyParentUpgrade(root string, p FixCandidate) error {
 }
 
 // editManifest applies a direct version bump to one manifest's text. The
-// writers live in github.com/Vulnetix/vdb-manifest.
+// writers live in github.com/Vulnesis/vdb-manifest.
 func editManifest(content string, p FixCandidate) (string, bool) {
 	return manifest.EditManifestText(p.SourceFile, content, p.PackageName, p.TargetVer)
 }
@@ -185,7 +185,7 @@ func applyTransitivePin(root string, p FixCandidate) error {
 
 // pinTransitive forces the resolver to select the safe child version by editing
 // the manifest with the ecosystem's pin mechanism, through the shared writers in
-// github.com/Vulnetix/vdb-manifest. Returns (content, false) when no edit
+// github.com/Vulnesis/vdb-manifest. Returns (content, false) when no edit
 // applies (the install command remains the fallback).
 func pinTransitive(content string, p FixCandidate) (string, bool) {
 	file := p.SourceFile

@@ -5,10 +5,10 @@ go 1.25.0
 require (
 	github.com/BurntSushi/toml v1.6.0
 	github.com/Masterminds/semver/v3 v3.5.0
+	github.com/Vulnesis/vdb-manifest v0.2.0
+	github.com/Vulnesis/vdb-sca-match v0.9.0
 	github.com/Vulnetix/vdb-cyclonedx v0.17.0
-	github.com/Vulnetix/vdb-manifest v0.1.0
 	github.com/Vulnetix/vdb-openapi v0.1.0
-	github.com/Vulnetix/vdb-sca-match v0.8.14
 	github.com/alecthomas/chroma/v2 v2.27.0
 	github.com/charmbracelet/bubbles v1.0.0
 	github.com/charmbracelet/bubbletea v1.3.10

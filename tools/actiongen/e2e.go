@@ -97,12 +97,6 @@ jobs:
           # post-step cache save tars several GB, which ran past timeout-minutes.
           cache: false
 
-      - name: Configure private module fetch
-        run: |
-          go env -w GOPRIVATE=github.com/Vulnetix/vdb-sca-match,github.com/Vulnetix/vdb-manifest
-          git config --global url."https://x-access-token:${{ secrets.PACKAGES_TOKEN }}@github.com/Vulnetix/vdb-sca-match".insteadOf "https://github.com/Vulnetix/vdb-sca-match"
-          git config --global url."https://x-access-token:${{ secrets.PACKAGES_TOKEN }}@github.com/Vulnetix/vdb-manifest".insteadOf "https://github.com/Vulnetix/vdb-manifest"
-
       - name: Build the CLI
         run: go build -o "$RUNNER_TEMP/vulnetix" .
         env:

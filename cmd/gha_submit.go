@@ -22,8 +22,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/Vulnesis/vdb-sca-match/sarif"
 	cyclonedx "github.com/Vulnetix/vdb-cyclonedx"
-	"github.com/Vulnetix/vdb-sca-match/sarif"
 
 	"github.com/vulnetix/cli/v4/internal/cdx"
 	"github.com/vulnetix/cli/v4/internal/upload"

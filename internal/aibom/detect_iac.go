@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Vulnesis/vdb-sca-match/parse"
 	cdx "github.com/Vulnetix/vdb-cyclonedx"
-	"github.com/Vulnetix/vdb-sca-match/parse"
 	"github.com/vulnetix/cli/v4/internal/sast"
 	yaml "gopkg.in/yaml.v3"
 )

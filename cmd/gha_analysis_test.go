@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Vulnetix/vdb-sca-match/ghaudit"
+	"github.com/Vulnesis/vdb-sca-match/ghaudit"
 	"github.com/vulnetix/cli/v4/internal/ghtasks"
 )
 

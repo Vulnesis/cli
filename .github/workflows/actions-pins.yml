@@ -51,8 +51,6 @@ jobs:
 
       - name: Regenerate
         if: steps.take.outputs.skip != 'true'
-        env:
-          GOPRIVATE: github.com/Vulnetix/vdb-sca-match,github.com/Vulnetix/vdb-manifest
         run: go run ./tools/actiongen -root .
 
       # A composite's pins are in the lock, so regenerating changes what it must
@@ -60,7 +58,7 @@ jobs:
       - name: Relock
         if: steps.take.outputs.skip != 'true'
         env:
-          GH_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh extension install github/gh-actions-lock --pin v0.4.1
           gh actions-lock --no-narrow
