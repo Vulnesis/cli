@@ -51,6 +51,16 @@ The Go module path in the build ldflags, the `go install` test and the TEA
 channel is read from `go.mod` (`go list -m`), so a major bump needs no edit to
 the workflow.
 
+`go install github.com/vulnetix/cli/v4@<version>` refuses a module whose
+`go.mod` has an `exclude` or `replace` directive. v4.26.2's `test-go-install`
+failed on an `exclude` of an old `golang.org/x/crypto`, added because a
+fail-closed package firewall (`GOPROXY=https://packages.vulnes.is`) refuses that
+version. Minimum version selection never picks it, but `go mod tidy` still reads
+its `go.mod`. Behind such a proxy, give it a fallback,
+`GOPROXY='https://packages.vulnes.is|https://proxy.golang.org|direct'`, and
+never put the workaround in `go.mod`. `TestGoModKeepsGoInstallWorking` fails on
+either directive.
+
 ## Build provenance and TEA
 
 Every release carries signed SLSA v1 provenance, `provenance.sigstore.json`,
