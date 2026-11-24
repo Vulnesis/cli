@@ -516,18 +516,25 @@ jobs:
             echo "flake.nix already at ${VER_NUM}"; exit 0
           fi
           branch="chore/flake-${VER_NUM}"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git switch -c "$branch"
-          git add flake.nix
-          git commit -m "chore: update flake.nix to v${VER_NUM} [skip ci]"
-          git push --force origin "$branch"
+          # protect-main requires signed commits, and a git push from this job
+          # is unsigned (#360 was blocked). A commit made through the API
+          # (createCommitOnBranch) is signed by GitHub, so: point the branch at
+          # main's head, then commit flake.nix onto it through GraphQL.
+          head=$(git rev-parse HEAD)
+          gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/heads/$branch" -f sha="$head" >/dev/null 2>&1 ||
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/$branch" -f sha="$head" -F force=true >/dev/null
+          jq -n --arg repo "$GITHUB_REPOSITORY" --arg branch "$branch" --arg head "$head" \
+            --arg msg "chore: update flake.nix to v${VER_NUM} [skip ci]" --arg contents "$(base64 -w0 flake.nix)" \
+            '{query: "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }",
+              variables: {input: {branch: {repositoryNameWithOwner: $repo, branchName: $branch},
+                message: {headline: $msg}, expectedHeadOid: $head,
+                fileChanges: {additions: [{path: "flake.nix", contents: $contents}]}}}}' > "$RUNNER_TEMP/flake-commit.json"
+          gh api graphql --input "$RUNNER_TEMP/flake-commit.json" --jq '.data.createCommitOnBranch.commit.oid'
           url=$(gh pr list --head "$branch" --json url --jq '.[0].url // empty')
-          # The Vulnesis org does not let GitHub Actions create pull requests
-          # (2026-11-24), and protect-main refuses this unsigned bot commit
-          # anyway. Then the bump is left on its branch for a signed PR by hand
-          # (as #361 did for v4.26.3); the release itself is not failed, so
-          # publish-tea, which waits on this job, still runs.
+          # If the PR cannot be opened (Actions not allowed to create pull
+          # requests), the signed bump is left on its branch for a PR by hand;
+          # the release itself is not failed, so publish-tea, which waits on
+          # this job, still runs.
           if [ -z "$url" ] && ! url=$(gh pr create --base main --head "$branch" \
               --title "chore: update flake.nix to v${VER_NUM} [skip ci]" \
               --body "The release workflow's flake bump for ${VERSION}." 2>&1); then
