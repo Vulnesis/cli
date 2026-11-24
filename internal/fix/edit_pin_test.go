@@ -77,7 +77,7 @@ func TestApplyOverridePinsTransitiveAcrossEcosystems(t *testing.T) {
 	})
 }
 
-// The writers moved to github.com/Vulnetix/vdb-manifest. These shims keep the
+// The writers moved to github.com/Vulnesis/vdb-manifest. These shims keep the
 // original assertions above running through the same production path
 // (pinTransitive) for each manifest file.
 func pinFile(file, content, name, target string) (string, bool) {

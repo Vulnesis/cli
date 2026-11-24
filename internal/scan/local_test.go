@@ -1,7 +1,7 @@
 package scan
 
 import (
-	"github.com/Vulnetix/vdb-sca-match/parse"
+	"github.com/Vulnesis/vdb-sca-match/parse"
 
 	"os"
 	"path/filepath"

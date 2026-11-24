@@ -21,7 +21,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Vulnetix/vdb-sca-match/sarif"
+	"github.com/Vulnesis/vdb-sca-match/sarif"
 	"github.com/vulnetix/cli/v4/internal/sast"
 	"github.com/vulnetix/cli/v4/pkg/brand"
 )

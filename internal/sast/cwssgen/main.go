@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Vulnetix/vdb-sca-match/cwss"
+	"github.com/Vulnesis/vdb-sca-match/cwss"
 )
 
 var (

@@ -22,7 +22,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Vulnetix/vdb-sca-match/ghaudit"
+	"github.com/Vulnesis/vdb-sca-match/ghaudit"
 )
 
 // DefaultAPIURL is api.github.com; GitHub Enterprise Server is passed in.

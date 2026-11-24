@@ -1,6 +1,6 @@
 package scan
 
-// Manifest/lockfile parsing lives in the shared github.com/Vulnetix/vdb-sca-match/parse
+// Manifest/lockfile parsing lives in the shared github.com/Vulnesis/vdb-sca-match/parse
 // module so the vdb-api server and this CLI parse manifests identically (a
 // manifest uploaded to POST /v2/scan/manifest keys the same vulnerability rows
 // as a local `vdb sca` run). This file re-exports the parse surface the rest of
@@ -8,7 +8,7 @@ package scan
 // `scan.*` and unchanged.
 
 import (
-	"github.com/Vulnetix/vdb-sca-match/parse"
+	"github.com/Vulnesis/vdb-sca-match/parse"
 )
 
 // ── Types ──────────────────────────────────────────────────────────────────

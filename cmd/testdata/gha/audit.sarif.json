@@ -5,11 +5,11 @@
     {
       "tool": {
         "driver": {
-          "name": "Vulnetix GitHub",
-          "fullName": "Vulnetix GitHub posture analysis",
+          "name": "Vulnesis GitHub",
+          "fullName": "Vulnesis GitHub posture analysis",
           "version": "1.0.0",
-          "organization": "Vulnetix",
-          "informationUri": "https://www.vulnetix.com",
+          "organization": "Vulnesis",
+          "informationUri": "https://www.vulnes.is",
           "rules": [
             {
               "id": "VNX-GH-001",
@@ -24,7 +24,7 @@
                 "text": "GitHub substitutes ${{ }} expressions into run: scripts (and script inputs such as actions/github-script's script) as text, before the interpreter parses them. Text that an outsider controls — a pull request title, a branch name, a comment, a commit message — becomes code that runs with the job's token and secrets. The engine follows the value through env:, GITHUB_ENV, step outputs, job outputs and local composite actions, and only reports sources the workflow's triggers can actually populate.\n\nRemediation: Pass the value through an environment variable and reference it as a shell variable (\"$TITLE\"), or as process.env in github-script, so it is data rather than code.",
                 "markdown": "GitHub substitutes ${{ }} expressions into run: scripts (and script inputs such as actions/github-script's script) as text, before the interpreter parses them. Text that an outsider controls — a pull request title, a branch name, a comment, a commit message — becomes code that runs with the job's token and secrets. The engine follows the value through env:, GITHUB_ENV, step outputs, job outputs and local composite actions, and only reports sources the workflow's triggers can actually populate.\n\n**Remediation**\n\nPass the value through an environment variable and reference it as a shell variable (\"$TITLE\"), or as process.env in github-script, so it is data rather than code.\n\n**Context used**\n\n- repo"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-001/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-001/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -68,7 +68,7 @@
                 "text": "Lines appended to $GITHUB_ENV become environment variables for every later step, and lines appended to $GITHUB_PATH prepend directories to PATH. A value containing a newline can define LD_PRELOAD, NODE_OPTIONS, BASH_ENV or a new PATH entry, giving code execution in later steps even when those steps are written safely.\n\nRemediation: Do not write untrusted values to GITHUB_ENV/GITHUB_PATH. If a later step needs the value, pass it through a step output and env:, or use a random heredoc delimiter and validate the value first.",
                 "markdown": "Lines appended to $GITHUB_ENV become environment variables for every later step, and lines appended to $GITHUB_PATH prepend directories to PATH. A value containing a newline can define LD_PRELOAD, NODE_OPTIONS, BASH_ENV or a new PATH entry, giving code execution in later steps even when those steps are written safely.\n\n**Remediation**\n\nDo not write untrusted values to GITHUB_ENV/GITHUB_PATH. If a later step needs the value, pass it through a step output and env:, or use a random heredoc delimiter and validate the value first."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-002/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-002/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -108,7 +108,7 @@
                 "text": "pull_request_target, workflow_run and issue_comment run in the base repository's context: a write-capable GITHUB_TOKEN and every secret. Checking out the pull request head and then running a script, a build, or a local action executes code the pull request author wrote with those privileges. Build scripts, package manager hooks, test configuration and local actions all count as execution.\n\nRemediation: Split the work: run untrusted code under pull_request (no secrets, read-only token) and hand results to a privileged workflow as data via an artifact. If the privileged job must see the code, never execute it — and gate the job on an environment with required reviewers.",
                 "markdown": "pull_request_target, workflow_run and issue_comment run in the base repository's context: a write-capable GITHUB_TOKEN and every secret. Checking out the pull request head and then running a script, a build, or a local action executes code the pull request author wrote with those privileges. Build scripts, package manager hooks, test configuration and local actions all count as execution.\n\n**Remediation**\n\nSplit the work: run untrusted code under pull_request (no secrets, read-only token) and hand results to a privileged workflow as data via an artifact. If the privileged job must see the code, never execute it — and gate the job on an environment with required reviewers.\n\n**Context used**\n\n- repo\n- environments"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-003/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-003/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -152,7 +152,7 @@
                 "text": "By default actions/checkout stores the job's GITHUB_TOKEN in .git/config so later git commands authenticate. Uploading the checkout directory as an artifact publishes that token to anyone who can download the run's artifacts — on a public repository, everyone — while the job is still running.\n\nRemediation: Set persist-credentials: false on actions/checkout, and upload only the build output directory, never the repository root.",
                 "markdown": "By default actions/checkout stores the job's GITHUB_TOKEN in .git/config so later git commands authenticate. Uploading the checkout directory as an artifact publishes that token to anyone who can download the run's artifacts — on a public repository, everyone — while the job is still running.\n\n**Remediation**\n\nSet persist-credentials: false on actions/checkout, and upload only the build output directory, never the repository root."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-004/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-004/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -189,7 +189,7 @@
                 "text": "Artifacts uploaded by a pull_request run are written by the pull request's code. A workflow_run job that downloads them into the working directory lets that code overwrite scripts, configuration or binaries the privileged job then uses.\n\nRemediation: Download into a dedicated directory outside the workspace (e.g. ${{ runner.temp }}/artifacts), treat contents as untrusted data, and validate them before use. Never execute anything from the artifact.",
                 "markdown": "Artifacts uploaded by a pull_request run are written by the pull request's code. A workflow_run job that downloads them into the working directory lets that code overwrite scripts, configuration or binaries the privileged job then uses.\n\n**Remediation**\n\nDownload into a dedicated directory outside the workspace (e.g. ${{ runner.temp }}/artifacts), treat contents as untrusted data, and validate them before use. Never execute anything from the artifact."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-005/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-005/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -229,7 +229,7 @@
                 "text": "Caches are shared across workflows in the same branch scope. A compromised or injectable workflow on the default branch can save a poisoned cache entry that a release workflow later restores and ships inside a published artifact.\n\nRemediation: Disable caching in workflows that publish releases or sign artifacts (remove cache: / actions/cache), or use a cache key namespace no other workflow writes.",
                 "markdown": "Caches are shared across workflows in the same branch scope. A compromised or injectable workflow on the default branch can save a poisoned cache entry that a release workflow later restores and ships inside a published artifact.\n\n**Remediation**\n\nDisable caching in workflows that publish releases or sign artifacts (remove cache: / actions/cache), or use a cache key namespace no other workflow writes."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-006/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-006/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -270,7 +270,7 @@
                 "text": "Without a permissions: block the GITHUB_TOKEN gets the repository or organisation default, which for many repositories is read/write on every scope. Any compromised step — a vulnerable action, an injection — can then push code, publish packages or approve pull requests.\n\nRemediation: Add `permissions: {}` (or `contents: read`) at the top of the workflow, and grant individual jobs only the scopes they need.",
                 "markdown": "Without a permissions: block the GITHUB_TOKEN gets the repository or organisation default, which for many repositories is read/write on every scope. Any compromised step — a vulnerable action, an injection — can then push code, publish packages or approve pull requests.\n\n**Remediation**\n\nAdd `permissions: {}` (or `contents: read`) at the top of the workflow, and grant individual jobs only the scopes they need.\n\n**Context used**\n\n- repo"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-007/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-007/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -307,7 +307,7 @@
                 "text": "write-all grants every scope including actions, packages, pages and id-token. Workflow-level write scopes apply to every job, including jobs that run untrusted code or third-party actions.\n\nRemediation: Use `permissions: {}` at the workflow level and grant each job only the specific scopes it needs.",
                 "markdown": "write-all grants every scope including actions, packages, pages and id-token. Workflow-level write scopes apply to every job, including jobs that run untrusted code or third-party actions.\n\n**Remediation**\n\nUse `permissions: {}` at the workflow level and grant each job only the specific scopes it needs."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-008/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-008/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -344,7 +344,7 @@
                 "text": "id-token: write lets the job request an OIDC token that cloud providers exchange for credentials. Cloud trust policies commonly match on repository only; without an environment gate, any branch, and any code that can run in that job, can obtain cloud credentials.\n\nRemediation: Bind the job to an environment with required reviewers or a protected-branch policy, and scope the cloud trust policy's subject to that environment (repo:owner/name:environment:prod).",
                 "markdown": "id-token: write lets the job request an OIDC token that cloud providers exchange for credentials. Cloud trust policies commonly match on repository only; without an environment gate, any branch, and any code that can run in that job, can obtain cloud credentials.\n\n**Remediation**\n\nBind the job to an environment with required reviewers or a protected-branch policy, and scope the cloud trust policy's subject to that environment (repo:owner/name:environment:prod).\n\n**Context used**\n\n- environments"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-009/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-009/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -382,7 +382,7 @@
                 "text": "The called workflow receives every secret the caller can see, not just the ones it uses. A reusable workflow in another repository, or one pinned to a mutable ref, becomes a way to exfiltrate all of them.\n\nRemediation: Pass only the secrets the called workflow declares under on.workflow_call.secrets, by name.",
                 "markdown": "The called workflow receives every secret the caller can see, not just the ones it uses. A reusable workflow in another repository, or one pinned to a mutable ref, becomes a way to exfiltrate all of them.\n\n**Remediation**\n\nPass only the secrets the called workflow declares under on.workflow_call.secrets, by name.\n\n**Context used**\n\n- repo"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-010/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-010/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -419,7 +419,7 @@
                 "text": "Secrets are only sent to a runner when referenced. toJSON(secrets) or a dynamic index forces every secret the workflow can see onto the runner, so a single compromised step can read all of them, and log masking is weaker for structured values.\n\nRemediation: Reference each secret by name, only in the step that needs it.",
                 "markdown": "Secrets are only sent to a runner when referenced. toJSON(secrets) or a dynamic index forces every secret the workflow can see onto the runner, so a single compromised step can read all of them, and log masking is weaker for structured values.\n\n**Remediation**\n\nReference each secret by name, only in the step that needs it."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-011/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-011/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -456,7 +456,7 @@
                 "text": "Credentials written into the workflow file are visible to anyone who can read the repository and persist in git history.\n\nRemediation: Store the password as an Actions secret and reference it as ${{ secrets.NAME }}. Rotate the exposed credential.",
                 "markdown": "Credentials written into the workflow file are visible to anyone who can read the repository and persist in git history.\n\n**Remediation**\n\nStore the password as an Actions secret and reference it as ${{ secrets.NAME }}. Rotate the exposed credential."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-012/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-012/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -491,7 +491,7 @@
                 "text": "With this variable set, any process that prints to stdout — a test, a dependency, a log line containing user text — can set environment variables or PATH for later steps by printing a workflow command.\n\nRemediation: Remove ACTIONS_ALLOW_UNSECURE_COMMANDS and write to $GITHUB_ENV / $GITHUB_PATH instead.",
                 "markdown": "With this variable set, any process that prints to stdout — a test, a dependency, a log line containing user text — can set environment variables or PATH for later steps by printing a workflow command.\n\n**Remediation**\n\nRemove ACTIONS_ALLOW_UNSECURE_COMMANDS and write to $GITHUB_ENV / $GITHUB_PATH instead."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-013/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-013/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -526,7 +526,7 @@
                 "text": "github.actor is whoever caused the latest event, not who wrote the code. An attacker can open a pull request that a bot later updates (for example by asking Dependabot to rebase), making the bot the actor while the attacker's commits run with the privileges the check was meant to reserve for the bot.\n\nRemediation: Check the pull request author (github.event.pull_request.user.login) and that the head repository is the base repository, or use the bot's own metadata action.",
                 "markdown": "github.actor is whoever caused the latest event, not who wrote the code. An attacker can open a pull request that a bot later updates (for example by asking Dependabot to rebase), making the bot the actor while the attacker's commits run with the privileges the check was meant to reserve for the bot.\n\n**Remediation**\n\nCheck the pull request author (github.event.pull_request.user.login) and that the head repository is the base repository, or use the bot's own metadata action."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-014/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-014/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -563,7 +563,7 @@
                 "text": "When an if: value contains text outside a single ${{ }} expression (including a trailing newline from a | block), GitHub evaluates the whole thing as a string, and any non-empty string is truthy. The guard — often an authorisation check — never blocks.\n\nRemediation: Write the condition as a single expression, either bare (if: a \u0026\u0026 b) or entirely inside one ${{ }}.",
                 "markdown": "When an if: value contains text outside a single ${{ }} expression (including a trailing newline from a | block), GitHub evaluates the whole thing as a string, and any non-empty string is truthy. The guard — often an authorisation check — never blocks.\n\n**Remediation**\n\nWrite the condition as a single expression, either bare (if: a \u0026\u0026 b) or entirely inside one ${{ }}."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-015/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-015/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -602,7 +602,7 @@
                 "text": "Self-hosted runners are not ephemeral by default: code from a pull request can persist on the machine, read credentials from earlier jobs, and reach the internal network the runner sits on. On a public repository any GitHub user can trigger this.\n\nRemediation: Run pull request workflows on GitHub-hosted runners, or on ephemeral (just-in-time) self-hosted runners in an isolated runner group that public repositories cannot use.",
                 "markdown": "Self-hosted runners are not ephemeral by default: code from a pull request can persist on the machine, read credentials from earlier jobs, and reach the internal network the runner sits on. On a public repository any GitHub user can trigger this.\n\n**Remediation**\n\nRun pull request workflows on GitHub-hosted runners, or on ephemeral (just-in-time) self-hosted runners in an isolated runner group that public repositories cannot use.\n\n**Context used**\n\n- repo\n- runner groups"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-016/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-016/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -642,7 +642,7 @@
                 "text": "Masking only redacts exact matches. Encoded, split or transformed output (base64, JSON, a substring, a multi-line value) is printed in clear to a log readable by everyone with read access.\n\nRemediation: Never print secrets. Pass them to tools through environment variables or files with restricted permissions.",
                 "markdown": "Masking only redacts exact matches. Encoded, split or transformed output (base64, JSON, a substring, a multi-line value) is printed in clear to a log readable by everyone with read access.\n\n**Remediation**\n\nNever print secrets. Pass them to tools through environment variables or files with restricted permissions."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-017/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-017/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -677,7 +677,7 @@
                 "text": "issue_comment runs with a write token and secrets, and anyone who can comment can trigger it. A ChatOps command (/deploy, /release, /retest) without an author_association or permission check runs for every GitHub user on a public repository.\n\nRemediation: Gate the job on github.event.comment.author_association being OWNER, MEMBER or COLLABORATOR, or check the commenter's permission with the API before acting.",
                 "markdown": "issue_comment runs with a write token and secrets, and anyone who can comment can trigger it. A ChatOps command (/deploy, /release, /retest) without an author_association or permission check runs for every GitHub user on a public repository.\n\n**Remediation**\n\nGate the job on github.event.comment.author_association being OWNER, MEMBER or COLLABORATOR, or check the commenter's permission with the API before acting.\n\n**Context used**\n\n- repo"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-018/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-018/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -714,7 +714,7 @@
                 "text": "uses: owner/repo/./@ref and github['event']['issue']['title'] resolve to the same thing as their plain forms but evade reviewers, allow-lists and simple scanners. Legitimate workflows rarely need them.\n\nRemediation: Write the reference or expression in its plain form.",
                 "markdown": "uses: owner/repo/./@ref and github['event']['issue']['title'] resolve to the same thing as their plain forms but evade reviewers, allow-lists and simple scanners. Legitimate workflows rarely need them.\n\n**Remediation**\n\nWrite the reference or expression in its plain form."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-019/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-019/",
               "defaultConfiguration": {
                 "level": "note"
               },
@@ -749,7 +749,7 @@
                 "text": "Moving an untrusted value into env: fixes script injection, but `git checkout $BRANCH` still lets a branch named --upload-pack=... or -o... inject options. Branch names can start with a dash.\n\nRemediation: Quote the variable and end option parsing: git checkout -- \"$BRANCH\" (or git switch \"refs/heads/$BRANCH\").",
                 "markdown": "Moving an untrusted value into env: fixes script injection, but `git checkout $BRANCH` still lets a branch named --upload-pack=... or -o... inject options. Branch names can start with a dash.\n\n**Remediation**\n\nQuote the variable and end option parsing: git checkout -- \"$BRANCH\" (or git switch \"refs/heads/$BRANCH\")."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-020/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-020/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -784,7 +784,7 @@
                 "text": "Token-theft campaigns add a step that dumps every secret (or the whole environment) and posts it to a server they control, often base64-encoded to slip past log masking, then remove the workflow. Authenticated calls that pass a single secret to an API are not reported; only bulk dumps, encoded secrets, and destinations with no legitimate use are.\n\nRemediation: Remove the step and treat every secret available to the workflow as compromised: rotate them, then review who added the change.",
                 "markdown": "Token-theft campaigns add a step that dumps every secret (or the whole environment) and posts it to a server they control, often base64-encoded to slip past log masking, then remove the workflow. Authenticated calls that pass a single secret to an API are not reported; only bulk dumps, encoded secrets, and destinations with no legitimate use are.\n\n**Remediation**\n\nRemove the step and treat every secret available to the workflow as compromised: rotate them, then review who added the change."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-021/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-021/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -827,7 +827,7 @@
                 "text": "A key built from the head branch or head SHA lets a contributor choose which entry the privileged job restores; restoring a cache after checking out the pull request saves the contributor's files under a key later trusted runs restore.\n\nRemediation: Key caches only on base-branch content (hashFiles of the base checkout), and do not cache in a job that checked out untrusted code.",
                 "markdown": "A key built from the head branch or head SHA lets a contributor choose which entry the privileged job restores; restoring a cache after checking out the pull request saves the contributor's files under a key later trusted runs restore.\n\n**Remediation**\n\nKey caches only on base-branch content (hashFiles of the base checkout), and do not cache in a job that checked out untrusted code."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-022/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-022/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -864,7 +864,7 @@
                 "text": "Tags and branches are mutable. When an action repository is compromised, the attacker re-points existing tags at malicious code and every workflow referencing them runs it on its next execution — as happened in widely used actions. A full 40-character SHA is the only immutable reference.\n\nRemediation: Pin to the full commit SHA and keep the version in a trailing comment (uses: owner/repo@\u003csha\u003e # v1.2.3); let Dependabot or Renovate update both.",
                 "markdown": "Tags and branches are mutable. When an action repository is compromised, the attacker re-points existing tags at malicious code and every workflow referencing them runs it on its next execution — as happened in widely used actions. A full 40-character SHA is the only immutable reference.\n\n**Remediation**\n\nPin to the full commit SHA and keep the version in a trailing comment (uses: owner/repo@\u003csha\u003e # v1.2.3); let Dependabot or Renovate update both.\n\n**Context used**\n\n- action refs\n- actions policy\n- repo"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-101/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-101/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -905,7 +905,7 @@
                 "text": "Reviewers and update bots read the version comment, not the SHA. A SHA that does not match its comment either predates an update that only changed the comment, or was swapped deliberately to run a different commit under a trusted-looking version.\n\nRemediation: Re-pin to the commit the intended version resolves to, and update the comment and SHA together.",
                 "markdown": "Reviewers and update bots read the version comment, not the SHA. A SHA that does not match its comment either predates an update that only changed the comment, or was swapped deliberately to run a different commit under a trusted-looking version.\n\n**Remediation**\n\nRe-pin to the commit the intended version resolves to, and update the comment and SHA together.\n\n**Context used**\n\n- action refs"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-102/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-102/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -946,7 +946,7 @@
                 "text": "GitHub serves commits from any fork through the parent repository's URL. An attacker can push malicious code to a fork and propose a pin to that SHA; it looks like owner/repo@\u003csha\u003e but the commit was never part of owner/repo.\n\nRemediation: Replace the SHA with one that is reachable from a branch or tag of the action repository itself.",
                 "markdown": "GitHub serves commits from any fork through the parent repository's URL. An attacker can push malicious code to a fork and propose a pin to that SHA; it looks like owner/repo@\u003csha\u003e but the commit was never part of owner/repo.\n\n**Remediation**\n\nReplace the SHA with one that is reachable from a branch or tag of the action repository itself.\n\n**Context used**\n\n- action refs"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-103/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-103/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -990,7 +990,7 @@
                 "text": "An archived action gets no security fixes. A deleted repository, or an owner that was renamed or removed, lets anyone register the old name and publish code under it (repo-jacking); unpinned references then run it.\n\nRemediation: Replace the action with a maintained alternative, or vendor it into this repository as a local action.",
                 "markdown": "An archived action gets no security fixes. A deleted repository, or an owner that was renamed or removed, lets anyone register the old name and publish code under it (repo-jacking); unpinned references then run it.\n\n**Remediation**\n\nReplace the action with a maintained alternative, or vendor it into this repository as a local action.\n\n**Context used**\n\n- action refs"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-104/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-104/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -1034,7 +1034,7 @@
                 "text": "Actions are dependencies. A vulnerable version — command injection through its inputs, credential leakage, or a compromised release — exposes every workflow that runs it.\n\nRemediation: Upgrade to the fixed version named in the advisory and re-pin to its SHA.",
                 "markdown": "Actions are dependencies. A vulnerable version — command injection through its inputs, credential leakage, or a compromised release — exposes every workflow that runs it.\n\n**Remediation**\n\nUpgrade to the fixed version named in the advisory and re-pin to its SHA.\n\n**Context used**\n\n- action refs"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-105/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-105/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -1073,7 +1073,7 @@
                 "text": "Image tags are mutable. The image that runs with the job's token and workspace can change without any change to the workflow.\n\nRemediation: Reference images by digest (image@sha256:...), and let an update bot refresh it.",
                 "markdown": "Image tags are mutable. The image that runs with the job's token and workspace can change without any change to the workflow.\n\n**Remediation**\n\nReference images by digest (image@sha256:...), and let an update bot refresh it."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-106/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-106/",
               "defaultConfiguration": {
                 "level": "note"
               },
@@ -1111,7 +1111,7 @@
                 "text": "Retired runtimes receive no security patches and are forced onto newer runtimes by the runner, which can change behaviour; retired artifact and cache backends fail outright.\n\nRemediation: Upgrade to the current major version of the action.",
                 "markdown": "Retired runtimes receive no security patches and are forced onto newer runtimes by the runner, which can change behaviour; retired artifact and cache backends fail outright.\n\n**Remediation**\n\nUpgrade to the current major version of the action."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-107/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-107/",
               "defaultConfiguration": {
                 "level": "note"
               },
@@ -1146,7 +1146,7 @@
                 "text": "The run will fail at start-up, or — if the policy is relaxed to make it pass — the allow-list stops meaning anything. Either way the drift should be resolved deliberately.\n\nRemediation: Replace the action with an allowed one, or add it (pinned) to the allow-list after review.",
                 "markdown": "The run will fail at start-up, or — if the policy is relaxed to make it pass — the allow-list stops meaning anything. Either way the drift should be resolved deliberately.\n\n**Remediation**\n\nReplace the action with an allowed one, or add it (pinned) to the allow-list after review.\n\n**Context used**\n\n- actions policy"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-108/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-108/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -1184,7 +1184,7 @@
                 "text": "Typosquatted owners (actoins/checkout, aws-action/...) are registered to catch mistyped references and run attacker code with the job's privileges.\n\nRemediation: Check the owner's spelling; reference the intended publisher.",
                 "markdown": "Typosquatted owners (actoins/checkout, aws-action/...) are registered to catch mistyped references and run attacker code with the job's privileges.\n\n**Remediation**\n\nCheck the owner's spelling; reference the intended publisher."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-109/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-109/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -1223,7 +1223,7 @@
                 "text": "curl | sh runs whatever the server returns at that moment, with the job's token and secrets. A compromised host, CDN or DNS response becomes code execution in CI.\n\nRemediation: Download to a file, verify a pinned checksum or signature, then execute it — or use a pinned action or package instead.",
                 "markdown": "curl | sh runs whatever the server returns at that moment, with the job's token and secrets. A compromised host, CDN or DNS response becomes code execution in CI.\n\n**Remediation**\n\nDownload to a file, verify a pinned checksum or signature, then execute it — or use a pinned action or package instead."
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-111/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-111/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -1260,7 +1260,7 @@
                 "text": "Anyone with write access — including a compromised token, a leaked deploy key, or a workflow with contents: write — can push directly to the default branch, rewrite its history or delete it, and the change ships without review.\n\nRemediation: Add a ruleset targeting the default branch that requires pull requests with at least one approval, blocks force pushes and deletions, and requires status checks.",
                 "markdown": "Anyone with write access — including a compromised token, a leaked deploy key, or a workflow with contents: write — can push directly to the default branch, rewrite its history or delete it, and the change ships without review.\n\n**Remediation**\n\nAdd a ruleset targeting the default branch that requires pull requests with at least one approval, blocks force pushes and deletions, and requires status checks.\n\n**Context used**\n\n- repo\n- branches"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-201/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-201/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -1300,7 +1300,7 @@
                 "text": "Without a required approval a single account — or a single stolen credential — can land any change on the default branch.\n\nRemediation: Require at least one approving review (two for repositories that publish releases), and require approval of the most recent push.",
                 "markdown": "Without a required approval a single account — or a single stolen credential — can land any change on the default branch.\n\n**Remediation**\n\nRequire at least one approving review (two for repositories that publish releases), and require approval of the most recent push.\n\n**Context used**\n\n- repo\n- branches"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-202/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-202/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -1339,7 +1339,7 @@
                 "text": "An author can get a harmless change approved, then push different code and merge on the old approval.\n\nRemediation: Enable dismiss stale approvals and require approval of the most recent reviewable push.",
                 "markdown": "An author can get a harmless change approved, then push different code and merge on the old approval.\n\n**Remediation**\n\nEnable dismiss stale approvals and require approval of the most recent reviewable push.\n\n**Context used**\n\n- repo\n- branches"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-203/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-203/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -1378,7 +1378,7 @@
                 "text": "Workflows hold the keys: secrets, deployment credentials and release signing. If any approver can sign off a workflow change, a reviewer unfamiliar with CI security can approve a change that exfiltrates secrets.\n\nRemediation: Add `/.github/ @your-org/ci-owners` to CODEOWNERS and require code owner review on the default branch.",
                 "markdown": "Workflows hold the keys: secrets, deployment credentials and release signing. If any approver can sign off a workflow change, a reviewer unfamiliar with CI security can approve a change that exfiltrates secrets.\n\n**Remediation**\n\nAdd `/.github/ @your-org/ci-owners` to CODEOWNERS and require code owner review on the default branch.\n\n**Context used**\n\n- repo\n- branches\n- codeowners"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-204/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-204/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -1418,7 +1418,7 @@
                 "text": "A force push rewrites history that downstream builds, tags and audits rely on, and can remove a reviewed change after the fact.\n\nRemediation: Block force pushes and deletions on the default branch.",
                 "markdown": "A force push rewrites history that downstream builds, tags and audits rely on, and can remove a reviewed change after the fact.\n\n**Remediation**\n\nBlock force pushes and deletions on the default branch.\n\n**Context used**\n\n- repo\n- branches"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-205/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-205/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -1456,7 +1456,7 @@
                 "text": "An exemption is a standing path around review. Admin accounts and app installations are the highest-value credentials to steal precisely because they skip the controls.\n\nRemediation: Enforce protection for administrators and limit ruleset bypass to a named break-glass team with pull-request-only bypass.",
                 "markdown": "An exemption is a standing path around review. Admin accounts and app installations are the highest-value credentials to steal precisely because they skip the controls.\n\n**Remediation**\n\nEnforce protection for administrators and limit ruleset bypass to a named break-glass team with pull-request-only bypass.\n\n**Context used**\n\n- repo\n- branches"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-206/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-206/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -1496,7 +1496,7 @@
                 "text": "Security checks (tests, scanners, signature verification) only protect the branch if a failing result blocks the merge.\n\nRemediation: Require the security-relevant checks to pass before merging.",
                 "markdown": "Security checks (tests, scanners, signature verification) only protect the branch if a failing result blocks the merge.\n\n**Remediation**\n\nRequire the security-relevant checks to pass before merging.\n\n**Context used**\n\n- repo\n- branches"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-207/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-207/",
               "defaultConfiguration": {
                 "level": "note"
               },
@@ -1534,7 +1534,7 @@
                 "text": "Every workflow that omits permissions: — including ones added later by contributors — runs with write access to contents, packages, issues and pull requests.\n\nRemediation: Set Settings → Actions → General → Workflow permissions to \"Read repository contents and packages permissions\".",
                 "markdown": "Every workflow that omits permissions: — including ones added later by contributors — runs with write access to contents, packages, issues and pull requests.\n\n**Remediation**\n\nSet Settings → Actions → General → Workflow permissions to \"Read repository contents and packages permissions\".\n\n**Context used**\n\n- repo\n- actions policy"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-208/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-208/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -1575,7 +1575,7 @@
                 "text": "A workflow token that can approve pull requests satisfies a one-approval rule on its own: one compromised workflow opens and approves its own change.\n\nRemediation: Disable \"Allow GitHub Actions to create and approve pull requests\".",
                 "markdown": "A workflow token that can approve pull requests satisfies a one-approval rule on its own: one compromised workflow opens and approves its own change.\n\n**Remediation**\n\nDisable \"Allow GitHub Actions to create and approve pull requests\".\n\n**Context used**\n\n- repo\n- actions policy"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-209/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-209/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -1614,7 +1614,7 @@
                 "text": "Approval is the human check before an outsider's code runs on your runners. Only requiring it for accounts new to GitHub lets any established account — or a bought one — run code immediately. On private repositories, sending secrets or write tokens to fork workflows hands them to every fork.\n\nRemediation: Require approval for all outside collaborators; on private repositories, do not send write tokens or secrets to fork pull request workflows.",
                 "markdown": "Approval is the human check before an outsider's code runs on your runners. Only requiring it for accounts new to GitHub lets any established account — or a bought one — run code immediately. On private repositories, sending secrets or write tokens to fork workflows hands them to every fork.\n\n**Remediation**\n\nRequire approval for all outside collaborators; on private repositories, do not send write tokens or secrets to fork pull request workflows.\n\n**Context used**\n\n- repo\n- actions policy"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-210/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-210/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -1653,7 +1653,7 @@
                 "text": "With no allow-list a contributor can introduce any third-party action in a pull request, and it runs on merge with the workflow's token and secrets.\n\nRemediation: Allow GitHub-owned and verified-creator actions plus an explicit list, and require SHA pinning.",
                 "markdown": "With no allow-list a contributor can introduce any third-party action in a pull request, and it runs on merge with the workflow's token and secrets.\n\n**Remediation**\n\nAllow GitHub-owned and verified-creator actions plus an explicit list, and require SHA pinning.\n\n**Context used**\n\n- repo\n- actions policy"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-211/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-211/",
               "defaultConfiguration": {
                 "level": "note"
               },
@@ -1693,7 +1693,7 @@
                 "text": "Push protection stops a credential before it reaches history; secret scanning finds the ones that got through. Without either, a leaked key is found first by whoever is looking.\n\nRemediation: Enable secret scanning and push protection.",
                 "markdown": "Push protection stops a credential before it reaches history; secret scanning finds the ones that got through. Without either, a leaked key is found first by whoever is looking.\n\n**Remediation**\n\nEnable secret scanning and push protection.\n\n**Context used**\n\n- repo\n- security and analysis"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-212/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-212/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -1731,7 +1731,7 @@
                 "text": "SHA-pinned actions only stay safe if something updates them. Security updates open the fix as a pull request as soon as an advisory is published.\n\nRemediation: Enable Dependabot security updates, and add a github-actions ecosystem entry to dependabot.yml.",
                 "markdown": "SHA-pinned actions only stay safe if something updates them. Security updates open the fix as a pull request as soon as an advisory is published.\n\n**Remediation**\n\nEnable Dependabot security updates, and add a github-actions ecosystem entry to dependabot.yml.\n\n**Context used**\n\n- repo\n- security and analysis"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-213/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-213/",
               "defaultConfiguration": {
                 "level": "note"
               },
@@ -1769,7 +1769,7 @@
                 "text": "Environment secrets exist so that only gated jobs see them. An ungated environment gives its secrets to any job on any branch that names it — including a branch pushed by any writer.\n\nRemediation: Add required reviewers (with prevent self-review) or restrict the environment to protected branches.",
                 "markdown": "Environment secrets exist so that only gated jobs see them. An ungated environment gives its secrets to any job on any branch that names it — including a branch pushed by any writer.\n\n**Remediation**\n\nAdd required reviewers (with prevent self-review) or restrict the environment to protected branches.\n\n**Context used**\n\n- repo\n- environments"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-214/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-214/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -1811,7 +1811,7 @@
                 "text": "Deploy keys are not tied to a user, do not expire, and are typically stored on build or deployment hosts. A write key there can push to unprotected branches and tags.\n\nRemediation: Make the key read-only, or replace it with a GitHub App installation token scoped to the repository.",
                 "markdown": "Deploy keys are not tied to a user, do not expire, and are typically stored on build or deployment hosts. A write key there can push to unprotected branches and tags.\n\n**Remediation**\n\nMake the key read-only, or replace it with a GitHub App installation token scoped to the repository.\n\n**Context used**\n\n- deploy keys"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-215/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-215/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -1848,7 +1848,7 @@
                 "text": "Webhooks often drive deployments. Without a signing secret anyone can forge an event; without TLS verification the payload (and anything it triggers) can be intercepted or altered.\n\nRemediation: Set a webhook secret and verify X-Hub-Signature-256 on receipt; enable SSL verification.",
                 "markdown": "Webhooks often drive deployments. Without a signing secret anyone can forge an event; without TLS verification the payload (and anything it triggers) can be intercepted or altered.\n\n**Remediation**\n\nSet a webhook secret and verify X-Hub-Signature-256 on receipt; enable SSL verification.\n\n**Context used**\n\n- webhooks"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-216/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-216/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -1887,7 +1887,7 @@
                 "text": "Admin access includes disabling branch protection, reading environment configuration and adding deploy keys. Outside collaborators are not covered by the organisation's 2FA, SSO and offboarding.\n\nRemediation: Reduce outside collaborators to write or lower, or bring them into the organisation.",
                 "markdown": "Admin access includes disabling branch protection, reading environment configuration and adding deploy keys. Outside collaborators are not covered by the organisation's 2FA, SSO and offboarding.\n\n**Remediation**\n\nReduce outside collaborators to write or lower, or bring them into the organisation.\n\n**Context used**\n\n- collaborators"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-217/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-217/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -1924,7 +1924,7 @@
                 "text": "Commit author fields are free text. Without signature verification a commit can claim any author, which undermines audit trails and author-based automation.\n\nRemediation: Require signed commits on the default branch.",
                 "markdown": "Commit author fields are free text. Without signature verification a commit can claim any author, which undermines audit trails and author-based automation.\n\n**Remediation**\n\nRequire signed commits on the default branch.\n\n**Context used**\n\n- repo\n- branches"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-218/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-218/",
               "defaultConfiguration": {
                 "level": "note"
               },
@@ -1963,7 +1963,7 @@
                 "text": "Repository secrets are available to every job. When a pull_request_target, issue_comment or workflow_run workflow reads one, any flaw in that workflow exposes it; an environment secret would add a gate.\n\nRemediation: Move the secret to an environment with required reviewers, and reference it only from the job bound to that environment.",
                 "markdown": "Repository secrets are available to every job. When a pull_request_target, issue_comment or workflow_run workflow reads one, any flaw in that workflow exposes it; an environment secret would add a gate.\n\n**Remediation**\n\nMove the secret to an environment with required reviewers, and reference it only from the job bound to that environment.\n\n**Context used**\n\n- repo"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-219/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-219/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -2003,7 +2003,7 @@
                 "text": "Without private vulnerability reporting, a researcher's only route is often a public issue, which discloses the flaw before a fix exists.\n\nRemediation: Enable private vulnerability reporting in the repository's security settings.",
                 "markdown": "Without private vulnerability reporting, a researcher's only route is often a public issue, which discloses the flaw before a fix exists.\n\n**Remediation**\n\nEnable private vulnerability reporting in the repository's security settings.\n\n**Context used**\n\n- repo\n- security and analysis"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-220/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-220/",
               "defaultConfiguration": {
                 "level": "note"
               },
@@ -2041,7 +2041,7 @@
                 "text": "SECURITY.md is the reporting route, CODEOWNERS names who must review sensitive paths, and a Dependabot configuration keeps dependencies — including pinned actions — updated. Each missing file removes one of those controls.\n\nRemediation: Add the missing files; include a github-actions entry in dependabot.yml so action pins are kept current.",
                 "markdown": "SECURITY.md is the reporting route, CODEOWNERS names who must review sensitive paths, and a Dependabot configuration keeps dependencies — including pinned actions — updated. Each missing file removes one of those controls.\n\n**Remediation**\n\nAdd the missing files; include a github-actions entry in dependabot.yml so action pins are kept current.\n\n**Context used**\n\n- repo\n- repo files"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-221/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-221/",
               "defaultConfiguration": {
                 "level": "note"
               },
@@ -2080,7 +2080,7 @@
                 "text": "A long-lived secret has had more time to be copied — into logs, forks, laptops — and its owner may have left. Rotation bounds how long a leaked copy stays useful.\n\nRemediation: Rotate the credential at its issuer and update the secret; prefer OIDC federation over stored cloud keys.",
                 "markdown": "A long-lived secret has had more time to be copied — into logs, forks, laptops — and its owner may have left. Rotation bounds how long a leaked copy stays useful.\n\n**Remediation**\n\nRotate the credential at its issuer and update the secret; prefer OIDC federation over stored cloud keys.\n\n**Context used**\n\n- secrets"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-222/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-222/",
               "defaultConfiguration": {
                 "level": "note"
               },
@@ -2118,7 +2118,7 @@
                 "text": "Every member account is a path to every repository it can write to. Phished or reused passwords are the most common way into an organisation.\n\nRemediation: Require two-factor authentication for the organisation.",
                 "markdown": "Every member account is a path to every repository it can write to. Phished or reused passwords are the most common way into an organisation.\n\n**Remediation**\n\nRequire two-factor authentication for the organisation.\n\n**Context used**\n\n- org"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-301/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-301/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -2155,7 +2155,7 @@
                 "text": "With a write default, one compromised member account can push to, and run workflows in, every repository in the organisation.\n\nRemediation: Set the base permission to read or none and grant write through teams.",
                 "markdown": "With a write default, one compromised member account can push to, and run workflows in, every repository in the organisation.\n\n**Remediation**\n\nSet the base permission to read or none and grant write through teams.\n\n**Context used**\n\n- org"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-302/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-302/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -2193,7 +2193,7 @@
                 "text": "Public repositories can be created by mistake with internal code, or used to host look-alike actions that appear to be official.\n\nRemediation: Restrict public repository creation to owners.",
                 "markdown": "Public repositories can be created by mistake with internal code, or used to host look-alike actions that appear to be official.\n\n**Remediation**\n\nRestrict public repository creation to owners.\n\n**Context used**\n\n- org"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-303/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-303/",
               "defaultConfiguration": {
                 "level": "note"
               },
@@ -2230,7 +2230,7 @@
                 "text": "An organisation-wide allow-list is the one control that stops a new, unreviewed third-party action from running anywhere.\n\nRemediation: Allow GitHub-owned, verified-creator and explicitly listed actions only.",
                 "markdown": "An organisation-wide allow-list is the one control that stops a new, unreviewed third-party action from running anywhere.\n\n**Remediation**\n\nAllow GitHub-owned, verified-creator and explicitly listed actions only.\n\n**Context used**\n\n- org"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-304/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-304/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -2269,7 +2269,7 @@
                 "text": "The organisation default sets the ceiling for every repository that does not override it, including every repository created from now on.\n\nRemediation: Set the organisation's default workflow permissions to read.",
                 "markdown": "The organisation default sets the ceiling for every repository that does not override it, including every repository created from now on.\n\n**Remediation**\n\nSet the organisation's default workflow permissions to read.\n\n**Context used**\n\n- org"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-305/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-305/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -2309,7 +2309,7 @@
                 "text": "A secret shared with all repositories is only as safe as the weakest workflow in the organisation. With visibility all, public repositories' workflows can read it too.\n\nRemediation: Set the secret's visibility to selected repositories, or private repositories at most.",
                 "markdown": "A secret shared with all repositories is only as safe as the weakest workflow in the organisation. With visibility all, public repositories' workflows can read it too.\n\n**Remediation**\n\nSet the secret's visibility to selected repositories, or private repositories at most.\n\n**Context used**\n\n- org"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-306/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-306/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -2349,7 +2349,7 @@
                 "text": "Any GitHub user can trigger pull_request workflows in a public repository. If those jobs can land on your self-hosted runners, outsiders run code inside your network.\n\nRemediation: Disable \"Allow public repositories\" on runner groups that contain self-hosted runners, or make those runners ephemeral and network-isolated.",
                 "markdown": "Any GitHub user can trigger pull_request workflows in a public repository. If those jobs can land on your self-hosted runners, outsiders run code inside your network.\n\n**Remediation**\n\nDisable \"Allow public repositories\" on runner groups that contain self-hosted runners, or make those runners ephemeral and network-isolated.\n\n**Context used**\n\n- runner groups"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-307/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-307/",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -2389,7 +2389,7 @@
                 "text": "Repositories inherit this permission; a workflow token can then satisfy one-approval rules by approving its own pull request.\n\nRemediation: Disable \"Allow GitHub Actions to create and approve pull requests\" at the organisation level.",
                 "markdown": "Repositories inherit this permission; a workflow token can then satisfy one-approval rules by approving its own pull request.\n\n**Remediation**\n\nDisable \"Allow GitHub Actions to create and approve pull requests\" at the organisation level.\n\n**Context used**\n\n- org"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-308/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-308/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -2427,7 +2427,7 @@
                 "text": "Organisation webhooks receive events from every repository. An unsigned or unverified hook lets an attacker forge or read them.\n\nRemediation: Set a webhook secret and enable SSL verification.",
                 "markdown": "Organisation webhooks receive events from every repository. An unsigned or unverified hook lets an attacker forge or read them.\n\n**Remediation**\n\nSet a webhook secret and enable SSL verification.\n\n**Context used**\n\n- org"
               },
-              "helpUri": "https://docs.cli.vulnetix.com/docs/github-rules/vnx-gh-309/",
+              "helpUri": "https://docs.cli.vulnes.is/docs/github-rules/vnx-gh-309/",
               "defaultConfiguration": {
                 "level": "warning"
               },
@@ -3170,7 +3170,7 @@
         }
       ],
       "automationDetails": {
-        "id": "vulnetix-github/"
+        "id": "vulnesis-github/"
       },
       "versionControlProvenance": [
         {

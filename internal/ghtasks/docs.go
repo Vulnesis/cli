@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Vulnetix/vdb-sca-match/ghaudit"
+	"github.com/Vulnesis/vdb-sca-match/ghaudit"
 )
 
 // RuleDocs renders the pages for the GitHub posture rules:

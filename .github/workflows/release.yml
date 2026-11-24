@@ -28,13 +28,8 @@ env:
   # Force JS actions to Node 24 so deprecated Node 20 runs stop firing while
   # action versions catch up (silences upload-artifact@v5 et al.).
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-  # Binaries pass between jobs through the S3 stage, not Actions artifacts, which are billed in
-  # GB-hours per month (github-runner-aws README, "Staging large hand-offs in S3"). The role is
-  # assumed through OIDC and can read and write only this repository's prefix; objects expire
-  # after a day. Release assets, which users install from, are unchanged.
-  STAGE_BUCKET: vulnetix-gha-stage-061882422009
-  STAGE_PREFIX: ${{ github.event.repository.name }}/${{ github.run_id }}
-  STAGE_ROLE: arn:aws:iam::061882422009:role/gha-stage-${{ github.event.repository.name }}
+  # Binaries pass between jobs as Actions artifacts kept for a day. The S3 stage they used
+  # went with the Vulnetix AWS account, whose role does not trust Vulnesis repositories.
 
 jobs:
   version:
@@ -61,7 +56,6 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -69,12 +63,6 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-
-      - name: Configure private fetch of vdb-sca-match and vdb-manifest (not yet in module proxy)
-        run: |
-          go env -w GOPRIVATE=github.com/Vulnetix/vdb-sca-match,github.com/Vulnetix/vdb-manifest
-          git config --global url."https://x-access-token:${{ secrets.PACKAGES_TOKEN }}@github.com/Vulnetix/vdb-sca-match".insteadOf "https://github.com/Vulnetix/vdb-sca-match"
-          git config --global url."https://x-access-token:${{ secrets.PACKAGES_TOKEN }}@github.com/Vulnetix/vdb-manifest".insteadOf "https://github.com/Vulnetix/vdb-manifest"
 
       - name: Install zig
         run: |
@@ -142,15 +130,14 @@ jobs:
             sh deploy/sensor/lambda/build-layer.sh "${arch}" "${VERSION}" bin
           done
 
-      - uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: ${{ env.STAGE_ROLE }}
-          aws-region: ap-southeast-2
       # Read by release and publish-tea, in this same run.
       - name: Stage cross-binaries
-        run: |
-          set -euo pipefail
-          tar -czf - -C bin . | aws s3 cp - "s3://$STAGE_BUCKET/$STAGE_PREFIX/cross-binaries.tgz"
+        uses: actions/upload-artifact@v7
+        with:
+          name: cross-binaries
+          path: bin/
+          retention-days: 1
+          if-no-files-found: error
 
   build-darwin:
     # Darwin builds run natively on macOS so Apple's SDK is available for CGO.
@@ -159,7 +146,6 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -167,12 +153,6 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-
-      - name: Configure private fetch of vdb-sca-match and vdb-manifest (not yet in module proxy)
-        run: |
-          go env -w GOPRIVATE=github.com/Vulnetix/vdb-sca-match,github.com/Vulnetix/vdb-manifest
-          git config --global url."https://x-access-token:${{ secrets.PACKAGES_TOKEN }}@github.com/Vulnetix/vdb-sca-match".insteadOf "https://github.com/Vulnetix/vdb-sca-match"
-          git config --global url."https://x-access-token:${{ secrets.PACKAGES_TOKEN }}@github.com/Vulnetix/vdb-manifest".insteadOf "https://github.com/Vulnetix/vdb-manifest"
 
       - name: Build darwin binaries
         run: |
@@ -190,14 +170,13 @@ jobs:
             CGO_CFLAGS="-arch x86_64 -w" CGO_LDFLAGS="-arch x86_64" \
             go build -ldflags "$LDFLAGS" -o bin/vulnetix-darwin-amd64 .
 
-      - uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: ${{ env.STAGE_ROLE }}
-          aws-region: ap-southeast-2
       - name: Stage darwin-binaries
-        run: |
-          set -euo pipefail
-          tar -czf - -C bin . | aws s3 cp - "s3://$STAGE_BUCKET/$STAGE_PREFIX/darwin-binaries.tgz"
+        uses: actions/upload-artifact@v7
+        with:
+          name: darwin-binaries
+          path: bin/
+          retention-days: 1
+          if-no-files-found: error
 
   release:
     needs: [version, build-cross, build-darwin]
@@ -258,17 +237,12 @@ jobs:
             echo "::warning::$VERSION is older than $NEWEST; publishing it without Latest, the $MAJOR tag move or package updates"
           fi
 
-      - uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: ${{ env.STAGE_ROLE }}
-          aws-region: ap-southeast-2
       - name: Fetch the staged binaries
-        run: |
-          set -euo pipefail
-          mkdir -p bin
-          for name in cross-binaries darwin-binaries; do
-            aws s3 cp "s3://$STAGE_BUCKET/$STAGE_PREFIX/$name.tgz" - | tar -xzf - -C bin
-          done
+        uses: actions/download-artifact@v8
+        with:
+          pattern: '*-binaries'
+          path: bin
+          merge-multiple: true
 
       - name: Copy install script
         run: cp install.sh bin/install.sh
@@ -353,7 +327,7 @@ jobs:
           echo "release $VERSION is id $ID"
           echo "release_id=$ID" >> "$GITHUB_OUTPUT"
         env:
-          GH_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
 
   # Consume the release the way a customer does before anything floats to it:
   # the tag's own setup action, with no version input, must install the binary
@@ -378,7 +352,7 @@ jobs:
             echo "::error::action-lib/cli-release does not name $VERSION"; exit 1; }
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+        uses: sigstore/cosign-installer@v4.1.2
 
       # The tag's own script, not an action: a local action in a locked workflow
       # must be $/, which resolves to this workflow's commit rather than the tag
@@ -422,7 +396,6 @@ jobs:
           ref: ${{ needs.version.outputs.version }}
           fetch-depth: 0
           fetch-tags: true
-          token: ${{ secrets.PACKAGES_TOKEN }}
 
       - name: Move the major tag
         env:
@@ -471,8 +444,6 @@ jobs:
       subjects_artifact: release-subjects
       version: ${{ needs.release.outputs.version }}
       release_id: ${{ needs.release.outputs.release_id }}
-    secrets:
-      release_token: ${{ secrets.PACKAGES_TOKEN }}
 
   test-go-install:
     needs: release
@@ -486,12 +457,6 @@ jobs:
         uses: actions/setup-go@v7
         with:
           go-version: '1.25'
-
-      - name: Configure private fetch of vdb-sca-match and vdb-manifest (not yet in module proxy)
-        run: |
-          go env -w GOPRIVATE=github.com/Vulnetix/vdb-sca-match,github.com/Vulnetix/vdb-manifest
-          git config --global url."https://x-access-token:${{ secrets.PACKAGES_TOKEN }}@github.com/Vulnetix/vdb-sca-match".insteadOf "https://github.com/Vulnetix/vdb-sca-match"
-          git config --global url."https://x-access-token:${{ secrets.PACKAGES_TOKEN }}@github.com/Vulnetix/vdb-manifest".insteadOf "https://github.com/Vulnetix/vdb-manifest"
 
       - name: Test go install
         env:
@@ -518,187 +483,62 @@ jobs:
           go install "${MODULE}@${VERSION}"
           vulnetix version --short || echo "Version command failed"
 
-  update-packages:
-    # After the canary: a release that cannot install must not reach Homebrew,
-    # Scoop or the flake.
+  update-flake:
+    # After the canary: a release that cannot install must not reach the flake.
+    # Homebrew and Scoop are not updated from here: Vulnesis/homebrew-tap and
+    # Vulnesis/scoop-bucket follow the published releases with their own token.
     needs: [release, canary]
-    # An older release finishing after a newer one must not roll Homebrew,
-    # Scoop and the flake back to it.
+    # An older release finishing after a newer one must not roll the flake back.
     if: needs.release.outputs.newest == 'true'
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
-    timeout-minutes: 20
+    runs-on: [self-hosted, vulnesis-cf-small]
+    timeout-minutes: 10
+    # main takes changes only through a pull request (ruleset protect-main), so
+    # the bump is a PR from this job's token, merged by auto-merge when it may.
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
-      - name: Checkout cli repo
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
         with:
-          token: ${{ secrets.PACKAGES_TOKEN }}
-
-      - name: Checkout homebrew-tap
-        uses: actions/checkout@v7
-        with:
-          repository: Vulnetix/homebrew-tap
           ref: main
-          token: ${{ secrets.PACKAGES_TOKEN }}
-          path: homebrew-tap
 
-      - name: Checkout scoop-bucket
-        uses: actions/checkout@v7
-        with:
-          repository: Vulnetix/scoop-bucket
-          ref: main
-          token: ${{ secrets.PACKAGES_TOKEN }}
-          path: scoop-bucket
-
-      - name: Download checksums
+      - name: Propose the flake.nix bump
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.release.outputs.version }}
         run: |
-          curl -fsSL \
-            "https://github.com/Vulnetix/cli/releases/download/${{ needs.release.outputs.version }}/checksums.txt" \
-            -o checksums.txt
-
-      - name: Update flake.nix
-        run: |
-          VER_NUM="${{ needs.release.outputs.version }}"
-          VER_NUM="${VER_NUM#v}"
-          git fetch origin main
-          git checkout -B main origin/main
+          set -euo pipefail
+          VER_NUM="${VERSION#v}"
           sed -i "s/version = \"[^\"]*\";/version = \"${VER_NUM}\";/" flake.nix
+          if git diff --quiet -- flake.nix; then
+            echo "flake.nix already at ${VER_NUM}"; exit 0
+          fi
+          branch="chore/flake-${VER_NUM}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
           git add flake.nix
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: update flake.nix to v${VER_NUM} [skip ci]"
-            git pull --rebase origin main
-            git push origin main
-          fi
+          git commit -m "chore: update flake.nix to v${VER_NUM} [skip ci]"
+          git push --force origin "$branch"
+          url=$(gh pr list --head "$branch" --json url --jq '.[0].url // empty')
+          [ -n "$url" ] || url=$(gh pr create --base main --head "$branch" \
+            --title "chore: update flake.nix to v${VER_NUM} [skip ci]" \
+            --body "The release workflow's flake bump for ${VERSION}.")
+          gh pr merge "$url" --squash --auto ||
+            echo "::warning::auto-merge is not available for $url; it waits for a merge by hand"
 
-      - name: Update Homebrew formula
-        run: |
-          set -euo pipefail
-          VER_NUM="${{ needs.release.outputs.version }}"
-          VER_NUM="${VER_NUM#v}"
-
-          # An absent checksum used to be substituted in as an empty string,
-          # producing `sha256 ""` — a formula that installs nothing, pushed to
-          # the tap and discovered by a user rather than by this job.
-          hash_for() {
-            local sum
-            sum=$(grep " \*\?$1\$" checksums.txt | awk '{print $1}')
-            if [ ${#sum} -ne 64 ]; then
-              echo "::error::no SHA-256 for $1 in checksums.txt" >&2
-              exit 1
-            fi
-            printf '%s' "$sum"
-          }
-          DARWIN_ARM64=$(hash_for vulnetix-darwin-arm64)
-          DARWIN_AMD64=$(hash_for vulnetix-darwin-amd64)
-          LINUX_ARM64=$(hash_for vulnetix-linux-arm64)
-          LINUX_AMD64=$(hash_for vulnetix-linux-amd64)
-
-          cd homebrew-tap
-          BREW="Formula/vulnetix.rb"
-          sed -i "s/version \"[^\"]*\"/version \"${VER_NUM}\"/" "$BREW"
-          sed -i "/vulnetix-darwin-arm64/{n;s/sha256 \"[a-f0-9]*\"/sha256 \"${DARWIN_ARM64}\"/}" "$BREW"
-          sed -i "/vulnetix-darwin-amd64/{n;s/sha256 \"[a-f0-9]*\"/sha256 \"${DARWIN_AMD64}\"/}" "$BREW"
-          sed -i "/vulnetix-linux-arm64/{n;s/sha256 \"[a-f0-9]*\"/sha256 \"${LINUX_ARM64}\"/}" "$BREW"
-          sed -i "/vulnetix-linux-amd64/{n;s/sha256 \"[a-f0-9]*\"/sha256 \"${LINUX_AMD64}\"/}" "$BREW"
-
-          # Every sed above is positional — it edits the line AFTER a URL that
-          # mentions a platform. Reordering the formula, or renaming an asset,
-          # makes them match nothing and leave the previous release's checksums
-          # in place, which is the one failure mode that looks like success.
-          for want in "${VER_NUM}" "${DARWIN_ARM64}" "${DARWIN_AMD64}" "${LINUX_ARM64}" "${LINUX_AMD64}"; do
-            if ! grep -q "$want" "$BREW"; then
-              echo "::error::$BREW does not contain $want after the edit; the formula layout has moved" >&2
-              exit 1
-            fi
-          done
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add "$BREW"
-          if ! git diff --cached --quiet; then
-            git commit -m "vulnetix ${VER_NUM}"
-            git push
-          fi
-
-      - name: Update Scoop manifest
-        run: |
-          set -euo pipefail
-          VER_NUM="${{ needs.release.outputs.version }}"
-          VER_NUM="${VER_NUM#v}"
-          hash_for() {
-            local sum
-            sum=$(grep " \*\?$1\$" checksums.txt | awk '{print $1}')
-            if [ ${#sum} -ne 64 ]; then
-              echo "::error::no SHA-256 for $1 in checksums.txt" >&2
-              exit 1
-            fi
-            printf '%s' "$sum"
-          }
-          WIN_AMD64=$(hash_for vulnetix-windows-amd64.exe)
-          WIN_ARM64=$(hash_for vulnetix-windows-arm64.exe)
-
-          cd scoop-bucket
-          # A missing manifest used to be a warning-free skip, leaving Scoop
-          # users on whatever version the bucket last knew about.
-          if [ ! -f bucket/vulnetix.json ]; then
-            echo "::error::scoop-bucket has no bucket/vulnetix.json" >&2
-            exit 1
-          fi
-          # 32-bit Windows builds were dropped when CGO became a build
-          # requirement (zig cc + CGO is unstable for i386-windows).
-          # Remove the 32bit architecture entry from the manifest.
-          jq --indent 4 \
-            --arg v "$VER_NUM" \
-            --arg h64 "$WIN_AMD64" \
-            --arg harm "$WIN_ARM64" \
-            '.version = $v |
-             .architecture."64bit".url = "https://github.com/Vulnetix/cli/releases/download/v\($v)/vulnetix-windows-amd64.exe#/vulnetix.exe" |
-             .architecture."64bit".hash = $h64 |
-             .architecture.arm64.url = "https://github.com/Vulnetix/cli/releases/download/v\($v)/vulnetix-windows-arm64.exe#/vulnetix.exe" |
-             .architecture.arm64.hash = $harm |
-             del(.architecture."32bit") |
-             del(.autoupdate.architecture."32bit")' bucket/vulnetix.json > /tmp/vulnetix.json
-          mv /tmp/vulnetix.json bucket/vulnetix.json
-
-          # jq would have failed already on malformed input, but not on a
-          # manifest whose shape has moved — `.architecture.arm64` on an object
-          # that no longer has one simply creates it somewhere harmless.
-          test "$(jq -r .version bucket/vulnetix.json)" = "$VER_NUM"
-          test "$(jq -r '.architecture."64bit".hash' bucket/vulnetix.json)" = "$WIN_AMD64"
-          test "$(jq -r '.architecture.arm64.hash' bucket/vulnetix.json)" = "$WIN_ARM64"
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add bucket/vulnetix.json
-          if ! git diff --cached --quiet; then
-            git commit -m "vulnetix ${VER_NUM}"
-            git push
-          fi
-
-  # Publish the release to the Transparency Exchange API.
-  #
-  # Runs after update-packages, not beside it, because two of the things it
-  # publishes are the Homebrew and Scoop channels. Advertising `brew install`
-  # for a version the tap does not carry yet would be a download link that
-  # 404s for as long as the other job takes — TEA is consumed by machines, and
-  # a machine does not know to try again in a minute.
-  #
-  # The binary doing the publishing is the one this release just built, so a
-  # `tea` regression fails the release that introduced it rather than the next
-  # one.
   publish-tea:
-    needs: [release, update-packages, provenance]
+    needs: [release, provenance, update-flake]
     # A TEA release cannot be unpublished, so it waits for the provenance
     # bundle it attaches: a failed provenance job is re-run, and this job with
-    # it. update-packages may be skipped only because the release is older
+    # it. update-flake may be skipped only because the release is older
     # than the newest; skipped because its canary never ran (which needs
     # provenance) it is a failure upstream, and publishing then put a release
-    # in the transparency log that Homebrew, Scoop and the flake never got.
+    # in the transparency log that the flake never got.
     if: >-
       ${{ !cancelled() && needs.release.result == 'success' && needs.provenance.result == 'success'
-      && (needs.update-packages.result == 'success'
-      || (needs.update-packages.result == 'skipped' && needs.release.outputs.newest != 'true')) }}
+      && (needs.update-flake.result == 'success'
+      || (needs.update-flake.result == 'skipped' && needs.release.outputs.newest != 'true')) }}
     runs-on: [self-hosted, Linux, X64, vulnetix-local]
     # Room for the signature upload to wait out a spent REST quota.
     timeout-minutes: 90
@@ -714,15 +554,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: ${{ env.STAGE_ROLE }}
-          aws-region: ap-southeast-2
       - name: Fetch the staged cross-binaries
-        run: |
-          set -euo pipefail
-          mkdir -p bin
-          aws s3 cp "s3://$STAGE_BUCKET/$STAGE_PREFIX/cross-binaries.tgz" - | tar -xzf - -C bin
+        uses: actions/download-artifact@v8
+        with:
+          name: cross-binaries
+          path: bin
 
       # The bundle for every binary in the release, signed by the provenance
       # job, which this job needs to have succeeded.
@@ -749,7 +585,7 @@ jobs:
       - name: Download checksums
         run: |
           curl -fsSL \
-            "https://github.com/Vulnetix/cli/releases/download/${{ needs.release.outputs.version }}/checksums.txt" \
+            "https://github.com/${{ github.repository }}/releases/download/${{ needs.release.outputs.version }}/checksums.txt" \
             -o checksums.txt
 
       # The organisation's quality gate makes `sca` exit non-zero on a policy
@@ -821,7 +657,7 @@ jobs:
             vulnetix.cdx.json.sig vulnetix.cdx.json.pem vulnetix.cdx.json.intoto.jsonl
         env:
           # The token that created the release.
-          GH_TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: Publish product, release, artifacts and distributions
         env:

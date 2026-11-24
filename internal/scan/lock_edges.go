@@ -10,7 +10,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 
-	"github.com/Vulnetix/vdb-sca-match/parse"
+	"github.com/Vulnesis/vdb-sca-match/parse"
 )
 
 // This file adds dependency-tree edge builders for lock files whose parsers

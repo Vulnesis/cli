@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Vulnetix/vdb-sca-match/ghaudit"
+	"github.com/Vulnesis/vdb-sca-match/ghaudit"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 )
 

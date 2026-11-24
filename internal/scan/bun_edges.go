@@ -4,7 +4,7 @@ import (
 	"os"
 	"sort"
 
-	"github.com/Vulnetix/vdb-sca-match/parse"
+	"github.com/Vulnesis/vdb-sca-match/parse"
 )
 
 // PopulateBunLockEdges adds the parent → child edges a bun.lock records. Each
