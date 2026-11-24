@@ -33,7 +33,7 @@ env:
 
 jobs:
   version:
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, vulnesis-cf-small]
     timeout-minutes: 5
     outputs:
       version: ${{ steps.version.outputs.VERSION }}
@@ -182,7 +182,7 @@ jobs:
 
   release:
     needs: [version, build-cross, build-darwin]
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, vulnesis-cf]
     timeout-minutes: 20
     permissions:
       contents: write
@@ -337,7 +337,7 @@ jobs:
   canary:
     needs: [version, release, provenance]
     if: needs.release.outputs.newest == 'true'
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, vulnesis-cf-small]
     timeout-minutes: 15
     permissions:
       contents: read
@@ -388,7 +388,7 @@ jobs:
   move-major:
     needs: [version, release, canary]
     if: needs.release.outputs.newest == 'true'
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, vulnesis-cf-small]
     timeout-minutes: 5
     permissions:
       contents: write
@@ -449,7 +449,7 @@ jobs:
 
   test-go-install:
     needs: release
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, vulnesis-cf-large]
     timeout-minutes: 20
     steps:
       # This job deliberately does not check out the repo — it proves the
@@ -556,7 +556,7 @@ jobs:
       ${{ !cancelled() && needs.release.result == 'success' && needs.provenance.result == 'success'
       && (needs.update-flake.result == 'success'
       || (needs.update-flake.result == 'skipped' && needs.release.outputs.newest != 'true')) }}
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, vulnesis-cf]
     # Room for the signature upload to wait out a spent REST quota.
     timeout-minutes: 90
     # id-token lets this job get an OIDC token from GitHub, which is the
