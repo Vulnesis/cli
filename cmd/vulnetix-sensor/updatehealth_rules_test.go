@@ -127,9 +127,7 @@ func TestAFailedRollbackStillMarksTheReleaseBad(t *testing.T) {
 }
 
 func TestUpdateSkipReasonNeedsAWritableDirectory(t *testing.T) {
-	if os.Geteuid() == 0 {
-		t.Skip("root writes to a read-only directory")
-	}
+	skipIfModesAreBypassed(t)
 	dir := t.TempDir()
 	bin := filepath.Join(dir, "vulnetix-sensor")
 	if err := os.WriteFile(bin, []byte("x"), 0o755); err != nil {

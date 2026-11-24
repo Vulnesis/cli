@@ -302,9 +302,7 @@ func TestEnrollPrintWritesNothing(t *testing.T) {
 }
 
 func TestUnreadableSnapshotNamesWhatStatusCannotSee(t *testing.T) {
-	if os.Geteuid() == 0 {
-		t.Skip("root reads every directory")
-	}
+	skipIfModesAreBypassed(t)
 	dir := t.TempDir()
 	open := filepath.Join(dir, "config.json")
 	if err := os.WriteFile(open, []byte("{}"), 0o644); err != nil {
@@ -328,5 +326,20 @@ func TestUnreadableSnapshotNamesWhatStatusCannotSee(t *testing.T) {
 	}
 	if got := unreadableSnapshot([]string{open, filepath.Join(dir, "absent.json")}); got != "" {
 		t.Fatalf("unreadableSnapshot = %q for readable and absent paths, want none", got)
+	}
+}
+
+// skipIfModesAreBypassed skips a test that needs a permission denial when this
+// process is not denied: root, or a user holding CAP_DAC_OVERRIDE, as the jobs
+// on the Cloudflare container runners do (their uid is not 0, so a Geteuid
+// check alone let these tests run and fail).
+func skipIfModesAreBypassed(t *testing.T) {
+	t.Helper()
+	probe := filepath.Join(t.TempDir(), "probe")
+	if err := os.WriteFile(probe, []byte("x"), 0o000); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.ReadFile(probe); err == nil {
+		t.Skip("this process reads a mode-000 file (root or CAP_DAC_OVERRIDE), so it cannot be denied")
 	}
 }
