@@ -214,7 +214,7 @@ jobs:
         continue-on-error: true
         env:
           GO_MODULE_PATTERN: '${{ vars.GO_MODULE_PATTERN }}'
-          GO_MODULE_TOKEN: '${{ secrets.PACKAGES_TOKEN }}'
+          GO_MODULE_TOKEN: '${{ github.token }}'
         shell: bash --noprofile --norc {0}
         run: |
           if [ -n "${GO_MODULE_TOKEN:-}" ]; then
@@ -368,7 +368,7 @@ jobs:
         continue-on-error: true
         env:
           GO_MODULE_PATTERN: '${{ vars.GO_MODULE_PATTERN }}'
-          GO_MODULE_TOKEN: '${{ secrets.PACKAGES_TOKEN }}'
+          GO_MODULE_TOKEN: '${{ github.token }}'
         shell: bash --noprofile --norc {0}
         run: |
           if [ -n "${GO_MODULE_TOKEN:-}" ]; then
@@ -515,7 +515,7 @@ jobs:
         continue-on-error: true
         env:
           GO_MODULE_PATTERN: '${{ vars.GO_MODULE_PATTERN }}'
-          GO_MODULE_TOKEN: '${{ secrets.PACKAGES_TOKEN }}'
+          GO_MODULE_TOKEN: '${{ github.token }}'
         shell: bash --noprofile --norc {0}
         run: |
           if [ -n "${GO_MODULE_TOKEN:-}" ]; then
@@ -555,7 +555,7 @@ jobs:
         continue-on-error: true
         env:
           GO_MODULE_PATTERN: '${{ vars.GO_MODULE_PATTERN }}'
-          GO_MODULE_TOKEN: '${{ secrets.PACKAGES_TOKEN }}'
+          GO_MODULE_TOKEN: '${{ github.token }}'
         shell: bash --noprofile --norc {0}
         run: |
           if [ -n "${GO_MODULE_TOKEN:-}" ]; then
@@ -595,7 +595,7 @@ jobs:
         continue-on-error: true
         env:
           GO_MODULE_PATTERN: '${{ vars.GO_MODULE_PATTERN }}'
-          GO_MODULE_TOKEN: '${{ secrets.PACKAGES_TOKEN }}'
+          GO_MODULE_TOKEN: '${{ github.token }}'
         shell: bash --noprofile --norc {0}
         run: |
           if [ -n "${GO_MODULE_TOKEN:-}" ]; then
