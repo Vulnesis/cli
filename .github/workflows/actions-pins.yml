@@ -18,6 +18,11 @@ jobs:
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: [self-hosted, Linux, X64, vulnetix-local]
     timeout-minutes: 15
+    # Pushes the regenerated files to the Dependabot branch with this run's own
+    # token. A push by GITHUB_TOKEN starts no new run, so close and reopen the
+    # pull request (or push to it) to re-run its checks after the regenerate.
+    permissions:
+      contents: write
     steps:
       # The stored read-only token would override the push token below.
       - uses: actions/checkout@v7
@@ -67,7 +72,7 @@ jobs:
         if: steps.take.outputs.skip != 'true'
         env:
           HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          TOKEN: ${{ secrets.PACKAGES_TOKEN }}
+          TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "support@vulnetix.com"
