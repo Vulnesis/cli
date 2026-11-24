@@ -62,7 +62,7 @@ workflows:
         - 'hadolint/hadolint-action@v3.5.0'
     '.github/workflows/vulnetix.yml':
         - 'actions/checkout@v7'
-        - 'vulnesis/cli@v4.24.33'
+        - 'vulnesis/cli@v4.24.37'
 dependencies:
     'actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8':
         ref: 'v4.2.2'
@@ -197,9 +197,9 @@ dependencies:
         commit: 'sha1-6f9f17788090df1f26f669e9d70d6ae9567deba6'
         owner_id: 71096353
         repo_id: 351211695
-    'vulnesis/cli@v4.24.33':
-        ref: 'v4.24.33'
-        commit: 'sha1-c55e15941f1d4e364188aefd161faa5c78a5336b'
+    'vulnesis/cli@v4.24.37':
+        ref: 'v4.24.37'
+        commit: 'sha1-400682a1fd9aff847b18eb0498e0062808e9ea44'
         owner_id: 358230047
         repo_id: 809336204
         uses:
