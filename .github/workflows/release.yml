@@ -52,7 +52,7 @@ jobs:
   build-cross:
     # Linux + Windows targets are cross-compiled from ubuntu using zig cc.
     needs: version
-    # standard-4: on the standard-2 container (vulnetix-local) the cross builds
+    # standard-4: on the standard-2 container (vulnesis-cf) the cross builds
     # took 40 of their 45 minutes (v4.26.2, run 45341768693); 6 on the EC2 pool.
     runs-on: [self-hosted, vulnesis-cf-large]
     timeout-minutes: 45

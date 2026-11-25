@@ -56,7 +56,7 @@ on:
 jobs:
   provenance:
     name: Sign and verify provenance
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, Linux, X64, vulnesis-cf]
     # Signing takes about a minute. The rest is room for the upload to wait
     # out a spent REST quota (up to an hour, see the upload step) rather than
     # fail the release.

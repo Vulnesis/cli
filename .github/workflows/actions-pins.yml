@@ -16,7 +16,7 @@ permissions:
 jobs:
   regenerate:
     if: github.event.pull_request.user.login == 'dependabot[bot]'
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, Linux, X64, vulnesis-cf]
     timeout-minutes: 15
     # Pushes the regenerated files to the Dependabot branch with this run's own
     # token. A push by GITHUB_TOKEN starts no new run, so close and reopen the

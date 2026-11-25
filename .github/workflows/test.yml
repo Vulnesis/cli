@@ -21,7 +21,7 @@ env:
 jobs:
   lint:
     name: Lint
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, Linux, X64, vulnesis-cf]
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -65,7 +65,7 @@ jobs:
           CGO_CFLAGS: "-w"
 
   test:
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, Linux, X64, vulnesis-cf]
     needs: [lint]
 
     steps:
@@ -249,7 +249,7 @@ jobs:
   # fails when the share of mutants killed drops below the threshold.
   mutation:
     name: Mutation testing
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, Linux, X64, vulnesis-cf]
     needs: [lint]
 
     steps:
@@ -282,7 +282,7 @@ jobs:
   # it after the SBOM is built.
   sign:
     name: Sign an SBOM as this runner
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, Linux, X64, vulnesis-cf]
     needs: [lint]
     permissions:
       # Without this the runner has no identity, --sign correctly declines to
@@ -339,7 +339,7 @@ jobs:
   # provenance, and --require-provenance without cosign on PATH is refused.
   install-verify:
     name: Install a release with verified provenance
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, Linux, X64, vulnesis-cf]
     needs: [lint]
     permissions:
       contents: read
@@ -377,7 +377,7 @@ jobs:
   # real uploads happen only on main through vulnetix.yml.
   actions-e2e:
     name: Actions end to end
-    runs-on: [self-hosted, Linux, X64, vulnetix-local]
+    runs-on: [self-hosted, Linux, X64, vulnesis-cf]
     needs: [lint]
     permissions:
       contents: read
