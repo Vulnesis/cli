@@ -19,6 +19,14 @@ updates:
 
   - package-ecosystem: github-actions
     directory: "/"
+    # These workflows call this repository's own actions as `uses: $/<dir>`.
+    # Dependabot checks out only .github, so it cannot read <dir>/action.yml and
+    # every update touching them ended in dependency_file_not_resolvable, which
+    # failed the whole run. Their third-party pins are major tags in the lock.
+    exclude-paths:
+      - ".github/workflows/test.yml"
+      - ".github/workflows/actions-e2e.yml"
+      - ".github/workflows/scope-union.yml"
     schedule:
       interval: weekly
     groups:
