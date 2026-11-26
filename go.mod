@@ -32,7 +32,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
-	github.com/vulnetix/malscan-engine v0.6.1
+	github.com/vulnetix/malscan-engine v0.8.1
 	github.com/zalando/go-keyring v0.2.8
 	golang.org/x/net v0.58.0
 	golang.org/x/sync v0.22.0
