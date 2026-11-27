@@ -242,15 +242,20 @@ download() {
 # Uses the redirect rather than the API so it needs no token and is not subject
 # to the API rate limit, which an unauthenticated CI runner will hit. Prints
 # nothing when it cannot resolve, and the caller falls back.
+#
+# Reads only the first redirect's Location and never follows it: the tag page
+# it points at can answer 504 for a large release (seen 2026-11-27 on v4.26.8),
+# and following it with curl -f made the substitution fail and, under set -e,
+# killed the installer with exit 22 before the fallback could run.
 resolve_latest_tag() {
   local url=""
   if command -v curl >/dev/null 2>&1; then
-    url=$(curl -fsSLI -o /dev/null -w '%{url_effective}' --retry 2 \
-      "https://github.com/Vulnesis/cli/releases/latest" 2>/dev/null)
+    url=$(curl -sS -o /dev/null -w '%{redirect_url}' --retry 2 \
+      "https://github.com/Vulnesis/cli/releases/latest" 2>/dev/null) || url=""
   elif command -v wget >/dev/null 2>&1; then
-    url=$(wget -q --spider --server-response --max-redirect=10 \
+    url=$(wget -q --spider --server-response --max-redirect=0 \
       "https://github.com/Vulnesis/cli/releases/latest" 2>&1 \
-      | awk '/^  Location: /{print $2}' | tail -n1)
+      | awk '/^  Location: /{print $2}' | tail -n1) || url=""
   fi
 
   case "$url" in
