@@ -654,11 +654,15 @@ jobs:
 
           # The same claim as an in-toto/DSSE envelope, with the SBOM as the
           # predicate, for consumers that speak attestations.
+          # stdout to /dev/null: attest-blob also prints the whole envelope there,
+          # one line as large as the SBOM, and the runner takes minutes to ingest
+          # a line that long (717 KB: 12 min on vulnesis-cf, Vulnesis/ops runner
+          # probe run 46051184436). The file above holds the same envelope.
           cosign attest-blob --yes \
             --type cyclonedx \
             --predicate vulnetix.cdx.json \
             --output-attestation vulnetix.cdx.json.intoto.jsonl \
-            vulnetix.cdx.json
+            vulnetix.cdx.json >/dev/null
 
           cosign verify-blob \
             --signature vulnetix.cdx.json.sig \
