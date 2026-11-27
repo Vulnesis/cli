@@ -67,7 +67,7 @@ jobs:
           name: ${{ inputs.subjects_artifact }}
           path: subjects
 
-      - uses: sigstore/cosign-installer@v4.1.2
+      - uses: sigstore/cosign-installer@v4.1.3
 
       - name: Build the statement
         id: statement
