@@ -329,6 +329,9 @@
       "vendor": "Amazon",
       "type": "ide",
       "homepage": "https://kiro.dev",
+      "env": [
+        "KIRO_API_KEY"
+      ],
       "paths": {
         "config": [
           ".kiro/**"
@@ -510,6 +513,9 @@
       "vendor": "Augment Code",
       "type": "ide-extension",
       "homepage": "https://www.augmentcode.com",
+      "env": [
+        "AUGMENT_SESSION_AUTH"
+      ],
       "paths": {
         "config": [
           ".augment/**"
@@ -732,6 +738,9 @@
       "vendor": "Factory",
       "type": "cli-agent",
       "homepage": "https://factory.ai",
+      "env": [
+        "FACTORY_API_KEY"
+      ],
       "paths": {
         "config": [
           ".factory/**"

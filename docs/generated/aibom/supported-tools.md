@@ -19,7 +19,7 @@ Each entry below is detected by the environment and filesystem passes. The **Det
 | Coro Code | Coro | `cli-agent` | env: `CORO_*`<br>config: `.coro/context.json` |
 | Cortex Code | Cortex | `cli-agent` | config: `.cortex/**`<br>instructions: `AGENTS.md`<br>skills: `.cortex/skills/**` |
 | Crush | Charm | `cli-agent` | config: `.crush/**`, `crush.json`, `.crush.json`<br>instructions: `CRUSH.md`, `AGENTS.md`<br>skills: `.crush/skills/**` |
-| Droid | Factory | `cli-agent` | config: `.factory/**`<br>instructions: `AGENTS.md`<br>skills: `.factory/skills/**`<br>commit: `factory-droid\[bot\]`, `(?i)<\d+\+factory-droid\[bot\]@users\.noreply\.github\.com>` |
+| Droid | Factory | `cli-agent` | env: `FACTORY_API_KEY`<br>config: `.factory/**`<br>instructions: `AGENTS.md`<br>skills: `.factory/skills/**`<br>commit: `factory-droid\[bot\]`, `(?i)<\d+\+factory-droid\[bot\]@users\.noreply\.github\.com>` |
 | Forge | Antinomy (ForgeCode) | `cli-agent` | env: `FORGE_*`<br>agents: `.forge/agents/**`<br>commands: `.forge/commands/**`<br>config: `.forge/**`, `forge.yaml`, `.forge.toml`<br>instructions: `AGENTS.md`<br>skills: `.forge/skills/**` |
 | Gemini CLI | Google | `cli-agent` | env: `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `GOOGLE_GENAI_USE_VERTEXAI`<br>config: `.gemini/**`, `.gemini/settings.json`<br>instructions: `GEMINI.md`, `.gemini/GEMINI.md`, `AGENTS.md`<br>skills: `.gemini/skills/**` |
 | Goose | Block | `cli-agent` | config: `.goose/**`<br>instructions: `.goosehints`, `AGENTS.md`<br>skills: `.goose/skills/**` |
@@ -69,14 +69,14 @@ Each entry below is detected by the environment and filesystem passes. The **Det
 | Conductor | Conductor | `ide` | env: `CONDUCTOR_*`<br>config: `.conductor/settings.toml`, `.conductor/**`<br>instructions: `.worktreeinclude` |
 | Cursor | Anysphere | `ide` | env: `CURSOR_*`<br>commands: `.cursor/commands/**`<br>config: `.cursor/**`, `.cursor/mcp.json`<br>hooks: `.cursor/hooks.json`<br>ignore: `.cursorignore`, `.cursorindexingignore`<br>instructions: `.cursorrules`, `.cursor/rules/**`, `AGENTS.md`<br>skills: `.cursor/skills/**`<br>commit: `(?i)co-authored-by:\s*cursor(?:\s+agent)?\b`, `(?i)<cursoragent@cursor\.com>` |
 | Google Antigravity | Google | `ide` | commands: `.agents/workflows/**`, `.agent/workflows/**`<br>instructions: `.agents/rules/**`, `.agent/rules/**`<br>skills: `.agents/skills/**` |
-| Kiro | Amazon | `ide` | config: `.kiro/**`<br>hooks: `.kiro/hooks/**`<br>instructions: `.kiro/specs/**`, `AGENTS.md`<br>skills: `.kiro/skills/**`<br>steering: `.kiro/steering/**` |
+| Kiro | Amazon | `ide` | env: `KIRO_API_KEY`<br>config: `.kiro/**`<br>hooks: `.kiro/hooks/**`<br>instructions: `.kiro/specs/**`, `AGENTS.md`<br>skills: `.kiro/skills/**`<br>steering: `.kiro/steering/**` |
 | Qoder | Alibaba | `ide` | config: `.qoder/**`<br>ignore: `.qoderignore`<br>instructions: `AGENTS.md`, `.qoder/rules/**`<br>memory: `.qoder/repowiki/**`<br>skills: `.qoder/skills/**` |
 | Trae | ByteDance | `ide` | config: `.trae/**`<br>instructions: `.trae/rules/**`, `AGENTS.md`<br>skills: `.trae/skills/**` |
 | Trae CN | ByteDance | `ide` | config: `.trae/**`<br>instructions: `.trae/rules/**`, `AGENTS.md`<br>skills: `.trae/skills/**` |
 | Windsurf | Codeium | `ide` | commands: `.windsurf/workflows/**`<br>config: `.windsurf/**`<br>hooks: `.windsurf/hooks.json`<br>ignore: `.codeiumignore`<br>instructions: `.windsurfrules`, `.windsurf/rules/**`, `AGENTS.md`<br>skills: `.windsurf/skills/**` |
 | Zed | Zed Industries | `ide` | config: `.zed/**`, `.zed/settings.json`<br>instructions: `.rules`, `AGENT.md`, `AGENTS.md`<br>skills: `.zed/skills/**` |
 | Amazon Q Developer | Amazon | `ide-extension` | env: `AMAZON_Q_*`<br>config: `.amazonq/**`<br>instructions: `.amazonq/rules/**`, `AGENTS.md`<br>skills: `.amazonq/skills/**`<br>commit: `amazon-q-developer\[bot\]` |
-| Augment | Augment Code | `ide-extension` | config: `.augment/**`<br>ignore: `.augmentignore`<br>instructions: `.augment-guidelines`, `.augment/rules/**`, `AGENTS.md`<br>skills: `.augment/skills/**` |
+| Augment | Augment Code | `ide-extension` | env: `AUGMENT_SESSION_AUTH`<br>config: `.augment/**`<br>ignore: `.augmentignore`<br>instructions: `.augment-guidelines`, `.augment/rules/**`, `AGENTS.md`<br>skills: `.augment/skills/**` |
 | Bito | Bito | `ide-extension` | config: `.bito.yaml`, `.bito.yml` |
 | Cline | Cline | `ide-extension` | config: `.cline/**`<br>hooks: `.clinerules/hooks/**`<br>instructions: `.clinerules`, `.clinerules/**`, `AGENTS.md`<br>skills: `.cline/skills/**` |
 | CodeBuddy | Tencent | `ide-extension` | config: `.codebuddy/**`<br>instructions: `AGENTS.md`<br>skills: `.codebuddy/skills/**` |
