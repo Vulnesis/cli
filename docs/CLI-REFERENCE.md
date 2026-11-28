@@ -8,7 +8,7 @@ This documentation has moved to **[docs.vulnes.is/cli](https://docs.vulnes.is/cl
 |---------|-------------|
 | `vulnetix` | Authentication healthcheck (default) |
 | `vulnetix auth login` | Authenticate with Vulnesis |
-| `vulnetix auth status` | Show authentication state |
+| `vulnetix auth status` | Show authentication state (`-o json`: no network call, never a secret) |
 | `vulnetix auth verify` | Verify stored credentials |
 | `vulnetix auth logout` | Remove stored credentials |
 | `vulnetix upload --file <path>` | Upload a security artifact (SBOM, SARIF, VEX, CSAF) |
@@ -19,6 +19,7 @@ This documentation has moved to **[docs.vulnes.is/cli](https://docs.vulnes.is/cl
 | `vulnetix package-firewall npm` | Configure npm to use Package Firewall |
 | `vulnetix package-firewall pypi` | Configure PyPI/pip to use Package Firewall |
 | `vulnetix package-firewall <ecosystem>` | Configure another package manager for Package Firewall |
+| `vulnetix package-firewall status` | Show which package managers use Package Firewall, and the add-on entitlement (`-o json`, `--offline`) |
 | `vulnetix vdb <subcommand>` | Vulnerability Database queries |
 | `vulnetix version` | Print version and check for updates |
 | `vulnetix update` | Update CLI to latest release |
