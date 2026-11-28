@@ -170,9 +170,13 @@ func TestPackageFirewallStatusText(t *testing.T) {
 	home := statusEnv(t)
 	host := auth.PackageFirewallMachine()
 	writeStatusFile(t, filepath.Join(home, ".npmrc"), "registry=https://"+host+"/npm/\n//"+host+"/:_auth="+statusCanary+"\n")
-	oldOut, oldOff := packageFirewallStatusOutput, packageFirewallStatusOffline
-	packageFirewallStatusOutput, packageFirewallStatusOffline = "text", true
-	t.Cleanup(func() { packageFirewallStatusOutput, packageFirewallStatusOffline = oldOut, oldOff })
+	// The --proxy-url default is read at package init, before TestMain pins the
+	// brand, so set the host the files name explicitly.
+	oldOut, oldOff, oldProxy := packageFirewallStatusOutput, packageFirewallStatusOffline, packageFirewallStatusProxyURL
+	packageFirewallStatusOutput, packageFirewallStatusOffline, packageFirewallStatusProxyURL = "text", true, "https://"+host
+	t.Cleanup(func() {
+		packageFirewallStatusOutput, packageFirewallStatusOffline, packageFirewallStatusProxyURL = oldOut, oldOff, oldProxy
+	})
 
 	out := runCobra(t, packageFirewallStatusCmd, runPackageFirewallStatus)
 	if strings.Contains(out, statusCanary) {
