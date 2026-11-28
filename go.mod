@@ -7,7 +7,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.5.0
 	github.com/Vulnesis/vdb-manifest v0.2.0
 	github.com/Vulnesis/vdb-sca-match v0.9.0
-	github.com/Vulnetix/vdb-cyclonedx v0.17.0
+	github.com/Vulnetix/vdb-cyclonedx v0.18.13
 	github.com/Vulnetix/vdb-openapi v0.1.0
 	github.com/alecthomas/chroma/v2 v2.27.0
 	github.com/charmbracelet/bubbles v1.0.0
