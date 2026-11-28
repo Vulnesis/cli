@@ -281,6 +281,7 @@ act that the console sees, not something a user does by accident.
 
 ```sh
 vulnetix-sensor status          # enrolled, profile, protection, etag, service state; exits 3 when not running
+vulnetix-sensor status -o json  # the same plus guard timer, health and update state as JSON; never the credential
 vulnetix-sensor config          # the profile config the sensor runs
 sudo vulnetix-sensor enroll --print --protection hardened   # preview the units; contacts nothing
 sudo vulnetix-sensor uninstall  # --code <code> when the profile is locked
@@ -366,7 +367,7 @@ Subcommands:
 enroll       --from-cli-login | --api-key <key> --org-id <org> | --mdm-key <file> --integration <uuid> --kid <id> [--mdm-device-id <id>]
              [--profile <uuid>] [--endpoint <url>] [--no-start] [--print [--protection standard|hardened|locked]]
              [--config-dir <dir>] [--state-dir <dir>]
-status       [--config-dir <dir>] [--state-dir <dir>]
+status       [-o text|json] [--config-dir <dir>] [--state-dir <dir>]
 config       [--config-dir <dir>] [--state-dir <dir>]
 uninstall    [--code <code>] [--config-dir <dir>] [--state-dir <dir>] [--endpoint <url>]
 goodbye      --reason signal|stop|uninstall|upgrade [--detail <text>]

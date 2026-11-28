@@ -414,13 +414,114 @@ func orDefault(s, d string) string {
 	return s
 }
 
+// statusOut is where status writes; replaced in tests.
+var statusOut io.Writer = os.Stdout
+
+// unitState is one systemd unit's is-active / is-enabled answer.
+type unitState struct {
+	Active  bool `json:"active"`
+	Enabled bool `json:"enabled"`
+}
+
+// statusHealth is health.json: the version that last reported in, and when.
+type statusHealth struct {
+	Version string `json:"version"`
+	At      string `json:"at"`
+}
+
+// statusUpdate is the non-secret part of update.json.
+type statusUpdate struct {
+	CheckedAt string         `json:"checkedAt,omitempty"`
+	Latest    string         `json:"latest,omitempty"`
+	Failed    string         `json:"failed,omitempty"`
+	Held      string         `json:"held,omitempty"`
+	FailCount int            `json:"failCount,omitempty"`
+	Pending   *pendingUpdate `json:"pending,omitempty"`
+	Outcome   *updateOutcome `json:"outcome,omitempty"`
+	Bad       []string       `json:"bad,omitempty"`
+}
+
+// statusDoc is `vulnetix-sensor status -o json`. Its keys are stable, and it
+// never carries the credential or any part of it.
+type statusDoc struct {
+	Installed  bool          `json:"installed"`
+	Version    string        `json:"version"`
+	Enrolled   bool          `json:"enrolled"`
+	Profile    string        `json:"profile"`
+	Protection string        `json:"protection"`
+	Mode       string        `json:"mode"`
+	ConfigEtag string        `json:"configEtag"`
+	Service    unitState     `json:"service"`
+	Guard      unitState     `json:"guard"`
+	Health     *statusHealth `json:"health"`
+	Update     *statusUpdate `json:"update"`
+}
+
+func rfc3339(t time.Time) string {
+	if t.IsZero() {
+		return ""
+	}
+
+	return t.UTC().Format(time.RFC3339)
+}
+
+func unitIsActive(state string) bool {
+	return state == "active" || state == "activating" || state == "reloading"
+}
+
+// statusJSON builds the machine-readable status document.
+func statusJSON(store provision.Store, stateDir string, snap provision.Snapshot, snapErr error, state, enabled string) statusDoc {
+	doc := statusDoc{
+		Installed: true,
+		Version:   version,
+		Enrolled:  store.HasCredential(),
+		Service:   unitState{Active: unitIsActive(state), Enabled: enabled == "enabled"},
+	}
+	if snapErr == nil {
+		doc.Profile = snap.Profile.UUID
+		doc.Protection = snap.Config.Level()
+		doc.Mode = orDefault(snap.Config.Mode, "monitor")
+		doc.ConfigEtag = snap.ConfigEtag
+	}
+	gActive, _ := systemctl("is-active", provision.GuardTimerUnit)
+	gEnabled, _ := systemctl("is-enabled", provision.GuardTimerUnit)
+	doc.Guard = unitState{Active: unitIsActive(gActive), Enabled: gEnabled == "enabled"}
+	if h := loadHealth(stateDir); h.Version != "" || !h.At.IsZero() {
+		doc.Health = &statusHealth{Version: h.Version, At: rfc3339(h.At)}
+	}
+	if _, err := os.Stat(filepath.Join(stateDir, updateStamp)); err == nil {
+		u := loadUpdateState(stateDir)
+		doc.Update = &statusUpdate{
+			CheckedAt: rfc3339(u.CheckedAt), Latest: u.Latest, Failed: u.Failed, Held: u.Held,
+			FailCount: u.FailCount, Pending: u.Pending, Outcome: u.Outcome, Bad: u.Bad,
+		}
+	}
+
+	return doc
+}
+
+// defineStatusFlags is status's flags: the common ones and -o/--output.
+func defineStatusFlags(fs *flag.FlagSet) (commonFlags, *string) {
+	c := defineCommon(fs)
+	output := fs.String("output", "text", "output format: text or json")
+	fs.StringVar(output, "o", "text", "output format: text or json (shorthand)")
+
+	return c, output
+}
+
 // statusCmd says whether this host is enrolled and the sensor running. It
-// exits 3 when the service is not active.
+// exits 3 when the service is not active; with -o json it prints the document
+// first and then exits 3 the same way.
 func statusCmd(args []string) error {
 	fs := flag.NewFlagSet("vulnetix-sensor status", flag.ContinueOnError)
-	c := defineCommon(fs)
+	c, output := defineStatusFlags(fs)
 	if err := fs.Parse(args); err != nil {
 		return err
+	}
+	switch *output {
+	case "", "text", "json":
+	default:
+		return fmt.Errorf("unknown output format %q (want text or json)", *output)
 	}
 	store := c.store()
 	snap, path, snapErr := provision.LoadSnapshot(snapshotPaths(store, *c.stateDir)...)
@@ -430,19 +531,33 @@ func statusCmd(args []string) error {
 	}
 	enabled, _ := systemctl("is-enabled", provision.ServiceUnit)
 
-	fmt.Printf("enrolled     %v\n", store.HasCredential())
+	if *output == "json" {
+		enc := json.NewEncoder(statusOut)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(statusJSON(store, *c.stateDir, snap, snapErr, state, enabled)); err != nil {
+			return err
+		}
+		if state != "active" {
+			return exitCode(3)
+		}
+
+		return nil
+	}
+
+	w := statusOut
+	fmt.Fprintf(w, "enrolled     %v\n", store.HasCredential())
 	if snapErr == nil {
-		fmt.Printf("profile      %s (%s)\n", orDefault(snap.Profile.Name, "?"), snap.Profile.UUID)
-		fmt.Printf("protection   %s\n", snap.Config.Level())
-		fmt.Printf("mode         %s\n", orDefault(snap.Config.Mode, "monitor"))
-		fmt.Printf("config etag  %s (%s)\n", orDefault(snap.ConfigEtag, "(none)"), path)
+		fmt.Fprintf(w, "profile      %s (%s)\n", orDefault(snap.Profile.Name, "?"), snap.Profile.UUID)
+		fmt.Fprintf(w, "protection   %s\n", snap.Config.Level())
+		fmt.Fprintf(w, "mode         %s\n", orDefault(snap.Config.Mode, "monitor"))
+		fmt.Fprintf(w, "config etag  %s (%s)\n", orDefault(snap.ConfigEtag, "(none)"), path)
 		if hidden := unreadableSnapshot(snapshotPaths(store, *c.stateDir)); hidden != "" {
-			fmt.Printf("note         %s exists but is not readable by this user, and the running sensor writes its live config there, so the etag above may be the one from enrolment; run with sudo to see the live config\n", hidden)
+			fmt.Fprintf(w, "note         %s exists but is not readable by this user, and the running sensor writes its live config there, so the etag above may be the one from enrolment; run with sudo to see the live config\n", hidden)
 		}
 	} else {
-		fmt.Printf("profile      none (%v)\n", snapErr)
+		fmt.Fprintf(w, "profile      none (%v)\n", snapErr)
 	}
-	fmt.Printf("service      %s, %s\n", state, orDefault(enabled, "unknown"))
+	fmt.Fprintf(w, "service      %s, %s\n", state, orDefault(enabled, "unknown"))
 	if state != "active" {
 		return exitCode(3)
 	}
@@ -753,7 +868,7 @@ func subcommandFlagSets() []*flag.FlagSet {
 	mk("enroll", func(fs *flag.FlagSet) { defineEnrollFlags(fs) })
 	mk("uninstall", func(fs *flag.FlagSet) { defineUninstallFlags(fs) })
 	mk("goodbye", func(fs *flag.FlagSet) { defineGoodbyeFlags(fs) })
-	mk("status", func(fs *flag.FlagSet) { defineCommon(fs) })
+	mk("status", func(fs *flag.FlagSet) { defineStatusFlags(fs) })
 	mk("inventory", func(fs *flag.FlagSet) { defineInventoryFlags(fs) })
 
 	return out

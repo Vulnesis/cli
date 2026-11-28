@@ -697,6 +697,7 @@
         "no-banner",
         "no-progress",
         "org-id",
+        "output",
         "silent",
         "verbose"
       ]
@@ -2646,6 +2647,7 @@
         "pub",
         "pypi",
         "rpm",
+        "status",
         "terraform",
         "uninstall"
       ]
@@ -3014,6 +3016,22 @@
         "no-banner",
         "no-progress",
         "org-id",
+        "proxy-url",
+        "silent",
+        "verbose"
+      ]
+    },
+    "package-firewall status": {
+      "short": "Show which package managers use the Package Firewall",
+      "flags": [
+        "artifact-manifest",
+        "disable-memory",
+        "no-analytics",
+        "no-banner",
+        "no-progress",
+        "offline",
+        "org-id",
+        "output",
         "proxy-url",
         "silent",
         "verbose"

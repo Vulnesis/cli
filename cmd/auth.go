@@ -31,6 +31,7 @@ var (
 	authStoreDir       string
 	authNoninteractive bool
 	authStatusBaseURL  string
+	authStatusOutput   string
 )
 
 // authCmd represents the auth command
@@ -81,6 +82,13 @@ var authStatusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Show current authentication state",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		switch strings.ToLower(strings.TrimSpace(authStatusOutput)) {
+		case "", "text":
+		case "json":
+			return writeJSONDoc(cmd.OutOrStdout(), buildAuthStatusDoc())
+		default:
+			return fmt.Errorf("unknown output format %q (want text or json)", authStatusOutput)
+		}
 		ctx := display.FromCommand(cmd)
 		t := ctx.Term
 
@@ -756,6 +764,7 @@ func init() {
 	_ = authCmd.RegisterFlagCompletionFunc("store", cobra.FixedCompletions([]string{"home", "project", "keyring"}, cobra.ShellCompDirectiveNoFileComp))
 
 	authStatusCmd.Flags().StringVar(&authStatusBaseURL, "base-url", brand.URL(upload.DefaultBaseURL), "Base URL for Vulnetix API")
+	authStatusCmd.Flags().StringVarP(&authStatusOutput, "output", "o", "text", "Output format: text or json (json makes no network call and never includes a secret)")
 	authVerifyCmd.Flags().StringVar(&verifyBaseURL, "base-url", brand.URL(upload.DefaultBaseURL), "Base URL for Vulnetix API")
 
 	authCmd.AddCommand(authLoginCmd, authStatusCmd, authLogoutCmd, authVerifyCmd)
